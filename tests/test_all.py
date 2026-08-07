@@ -5,7 +5,7 @@ import shutil
 from pathlib import Path
 
 # Test direct modular imports
-from lib.json import JSONSuite
+from lib.json import JSONSuite, PromptJSONProcessor
 from lib.py import (
     ComplexityAnalyzer, analyze_workspace, workspace_summary,
     batch_code_replace, inject_import,
@@ -54,6 +54,18 @@ class TestWorkspaceTools(unittest.TestCase):
         schema = {"required": ["name"], "types": {"name": "str"}}
         valid = JSONSuite.validate_schema({"name": "Alice"}, schema)
         self.assertTrue(valid["valid"])
+
+    def test_prompt_json_processor(self):
+        messy_prompt = "Hey please configure the build: {targetSdk: 35, 'version': '2.0', active: True,}"
+        extracted = PromptJSONProcessor.extract_json_from_prompt(messy_prompt)
+        self.assertIsNotNone(extracted)
+        self.assertEqual(extracted["targetSdk"], 35)
+        self.assertEqual(extracted["version"], "2.0")
+        self.assertTrue(extracted["active"])
+
+        intent = PromptJSONProcessor.normalize_prompt_intent("Please fix build and update app/build.gradle")
+        self.assertEqual(intent["detected_action"], "BUILD_REPAIR")
+        self.assertIn("app/build.gradle", intent["parameters"]["referenced_files"])
 
     def test_python_suite_modular(self):
         analyzer = ComplexityAnalyzer(self.sandbox / 'test_file.py')

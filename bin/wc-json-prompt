@@ -1,0 +1,53 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+from pathlib import Path
+
+# Add project root to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from lib.json import PromptJSONProcessor
+
+def main():
+    parser = argparse.ArgumentParser(description="Unformatted Prompt JSON Extractor & Dynamic Context Adjuster")
+    subparsers = parser.add_subparsers(dest="action", help="Prompt processing action")
+
+    # Extract JSON
+    p_ext = subparsers.add_parser("extract", help="Extract and repair embedded JSON from unformatted prompt")
+    p_ext.add_argument("text", nargs="?", help="Raw prompt string (or reads from stdin)")
+    p_ext.add_argument("-m", "--minify", action="store_true", help="Output minified JSON")
+
+    # Normalize Intent
+    p_int = subparsers.add_parser("intent", help="Normalize unstructured prompt into structured intent schema")
+    p_int.add_argument("text", nargs="?", help="Raw prompt string (or reads from stdin)")
+
+    args = parser.parse_args()
+    if not args.action:
+        parser.print_help()
+        sys.exit(0)
+
+    raw_text = args.text
+    if not raw_text and not sys.stdin.isatty():
+        raw_text = sys.stdin.read()
+
+    if not raw_text:
+        parser.print_help()
+        sys.exit(0)
+
+    if args.action == "extract":
+        extracted = PromptJSONProcessor.extract_json_from_prompt(raw_text)
+        if extracted is None:
+            print("❌ No valid or repairable JSON detected in prompt.", file=sys.stderr)
+            sys.exit(1)
+        if args.minify:
+            print(json.dumps(extracted, separators=(',', ':'), ensure_ascii=False))
+        else:
+            print(json.dumps(extracted, indent=2, ensure_ascii=False))
+
+    elif args.action == "intent":
+        intent = PromptJSONProcessor.normalize_prompt_intent(raw_text)
+        print(json.dumps(intent, indent=2, ensure_ascii=False))
+
+if __name__ == "__main__":
+    main()
