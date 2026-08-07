@@ -1,0 +1,53 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+from pathlib import Path
+
+# Add project root to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from lib.json import JSONCSVBridge
+
+def main():
+    parser = argparse.ArgumentParser(description="Zero-Dependency JSON <-> CSV/TSV Converter")
+    subparsers = parser.add_subparsers(dest="command", help="Conversion direction")
+
+    # to-csv
+    p_tocsv = subparsers.add_parser("to-csv", help="Convert JSON array of objects to CSV/TSV")
+    p_tocsv.add_argument("target", nargs="?", help="JSON file or raw string")
+    p_tocsv.add_argument("-t", "--tsv", action="store_true", help="Use Tab delimiter (TSV)")
+
+    # to-json
+    p_tojson = subparsers.add_parser("to-json", help="Convert CSV/TSV to JSON array of objects")
+    p_tojson.add_argument("target", nargs="?", help="CSV/TSV file or raw string")
+    p_tojson.add_argument("-t", "--tsv", action="store_true", help="Use Tab delimiter (TSV)")
+
+    args = parser.parse_args()
+    if not args.command:
+        parser.print_help()
+        sys.exit(0)
+
+    raw_input = args.target
+    if not raw_input and not sys.stdin.isatty():
+        raw_input = sys.stdin.read()
+    elif raw_input:
+        p = Path(raw_input)
+        if p.exists() and p.is_file():
+            raw_input = p.read_text(encoding="utf-8", errors="ignore")
+
+    if not raw_input:
+        parser.print_help()
+        sys.exit(0)
+
+    delimiter = "\t" if args.tsv else ","
+
+    if args.command == "to-csv":
+        res = JSONCSVBridge.json_to_csv(raw_input, delimiter=delimiter)
+        print(res)
+    elif args.command == "to-json":
+        res = JSONCSVBridge.csv_to_json(raw_input, delimiter=delimiter)
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+
+if __name__ == "__main__":
+    main()

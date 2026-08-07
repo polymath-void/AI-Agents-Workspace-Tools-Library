@@ -1,0 +1,47 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+from pathlib import Path
+
+# Add project root to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from lib.json import JSONFilterEngine
+
+def main():
+    parser = argparse.ArgumentParser(description="Predicate Query & JSON Array Filtering Engine")
+    parser.add_argument("field", help="Field name or dot path (e.g. 'age' or 'user.role')")
+    parser.add_argument("operator", choices=["==", "!=", ">", ">=", "<", "<=", "contains", "startswith"], help="Comparison operator")
+    parser.add_argument("value", help="Expected value to compare against")
+    parser.add_argument("target", nargs="?", help="JSON file or raw JSON string")
+    parser.add_argument("-m", "--minify", action="store_true", help="Output token-minified JSON")
+
+    args = parser.parse_args()
+
+    raw_json = args.target
+    if not raw_json and not sys.stdin.isatty():
+        raw_json = sys.stdin.read()
+    elif raw_json:
+        p = Path(raw_json)
+        if p.exists() and p.is_file():
+            raw_json = p.read_text(encoding="utf-8", errors="ignore")
+
+    if not raw_json:
+        parser.print_help()
+        sys.exit(0)
+
+    try:
+        data = json.loads(raw_json)
+    except Exception as e:
+        print(f"❌ Invalid JSON: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    filtered = JSONFilterEngine.filter_array(data, args.field, args.operator, args.value)
+    if args.minify:
+        print(json.dumps(filtered, separators=(',', ':'), ensure_ascii=False))
+    else:
+        print(json.dumps(filtered, indent=2, ensure_ascii=False))
+
+if __name__ == "__main__":
+    main()

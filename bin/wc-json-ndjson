@@ -1,0 +1,58 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+from pathlib import Path
+
+# Add project root to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from lib.json import NDJSONSuite
+
+def main():
+    parser = argparse.ArgumentParser(description="NDJSON / JSONL Converter and Streaming Line Filter")
+    subparsers = parser.add_subparsers(dest="command", help="NDJSON command")
+
+    # to-ndjson
+    p_tond = subparsers.add_parser("to-ndjson", help="Convert JSON array to NDJSON newline delimited lines")
+    p_tond.add_argument("target", nargs="?", help="JSON file or raw JSON string")
+
+    # to-json
+    p_tojson = subparsers.add_parser("to-json", help="Convert NDJSON newline delimited lines to JSON array")
+    p_tojson.add_argument("target", nargs="?", help="NDJSON file or raw string")
+
+    # filter
+    p_filt = subparsers.add_parser("filter", help="Filter NDJSON lines matching a key-value condition")
+    p_filt.add_argument("target", nargs="?", help="NDJSON file or raw string")
+    p_filt.add_argument("-k", "--key", required=True, help="Field key to inspect")
+    p_filt.add_argument("-v", "--value", required=True, help="Expected matching value")
+
+    args = parser.parse_args()
+    if not args.command:
+        parser.print_help()
+        sys.exit(0)
+
+    raw_input = args.target
+    if not raw_input and not sys.stdin.isatty():
+        raw_input = sys.stdin.read()
+    elif raw_input:
+        p = Path(raw_input)
+        if p.exists() and p.is_file():
+            raw_input = p.read_text(encoding="utf-8", errors="ignore")
+
+    if not raw_input:
+        parser.print_help()
+        sys.exit(0)
+
+    if args.command == "to-ndjson":
+        res = NDJSONSuite.json_to_ndjson(raw_input)
+        print(res)
+    elif args.command == "to-json":
+        res = NDJSONSuite.ndjson_to_json(raw_input)
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+    elif args.command == "filter":
+        res = NDJSONSuite.filter_ndjson(raw_input, args.key, args.value)
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+
+if __name__ == "__main__":
+    main()

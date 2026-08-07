@@ -1,0 +1,47 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+from pathlib import Path
+
+# Add project root to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from lib.json import JSONFormatter
+
+def main():
+    parser = argparse.ArgumentParser(description="Zero-Dependency JSON Prettifier, Colorizer & Minifier")
+    parser.add_argument("target", nargs="?", help="JSON file or raw string (reads stdin if omitted)")
+    parser.add_argument("-i", "--indent", type=int, default=2, help="Indentation level (default: 2)")
+    parser.add_argument("-s", "--sort-keys", action="store_true", help="Sort keys alphabetically")
+    parser.add_argument("-m", "--minify", action="store_true", help="Minify JSON payload")
+    parser.add_argument("-c", "--color", action="store_true", help="Enable terminal syntax highlighting")
+
+    args = parser.parse_args()
+
+    raw_json = args.target
+    if not raw_json and not sys.stdin.isatty():
+        raw_json = sys.stdin.read()
+    elif raw_json:
+        p = Path(raw_json)
+        if p.exists() and p.is_file():
+            raw_json = p.read_text(encoding="utf-8", errors="ignore")
+
+    if not raw_json:
+        parser.print_help()
+        sys.exit(0)
+
+    try:
+        data = json.loads(raw_json)
+    except Exception as e:
+        print(f"❌ Invalid JSON: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    formatted = JSONFormatter.format(data, indent=args.indent, sort_keys=args.sort_keys, minify=args.minify)
+    if args.color and not args.minify:
+        print(JSONFormatter.colorize(formatted))
+    else:
+        print(formatted)
+
+if __name__ == "__main__":
+    main()

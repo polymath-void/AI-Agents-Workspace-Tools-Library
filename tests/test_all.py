@@ -5,7 +5,12 @@ import shutil
 from pathlib import Path
 
 # Test direct modular imports
-from lib.json import JSONSuite, PromptJSONProcessor
+from lib.json import (
+    JSONSuite, PromptJSONProcessor, JSONFormatter,
+    JSONSchemaGenerator, JSONFlattener, NDJSONSuite,
+    JSONCSVBridge, JSONStatsInspector, JSONFilterEngine,
+    JSONSanitizer
+)
 from lib.py import (
     ComplexityAnalyzer, analyze_workspace, workspace_summary,
     batch_code_replace, inject_import,
@@ -55,6 +60,54 @@ class TestWorkspaceTools(unittest.TestCase):
         schema = {"required": ["name"], "types": {"name": "str"}}
         valid = JSONSuite.validate_schema({"name": "Alice"}, schema)
         self.assertTrue(valid["valid"])
+
+    def test_json_extended_suite(self):
+        # 1. Formatter
+        formatted = JSONFormatter.format({"b": 2, "a": 1}, sort_keys=True, minify=True)
+        self.assertEqual(formatted, '{"a":1,"b":2}')
+
+        # 2. Schema Gen
+        schema = JSONSchemaGenerator.infer_schema({"name": "Piuu", "count": 10})
+        self.assertEqual(schema["type"], "object")
+        self.assertIn("count", schema["properties"])
+
+        # 3. Flattener & Unflattener
+        nested = {"user": {"profile": {"name": "Alice"}}}
+        flat = JSONFlattener.flatten(nested)
+        self.assertEqual(flat.get("user.profile.name"), "Alice")
+        unflat = JSONFlattener.unflatten(flat)
+        self.assertEqual(unflat["user"]["profile"]["name"], "Alice")
+
+        # 4. NDJSON
+        items = [{"id": 1}, {"id": 2}]
+        nd = NDJSONSuite.json_to_ndjson(items)
+        self.assertEqual(len(nd.split("\n")), 2)
+        parsed = NDJSONSuite.ndjson_to_json(nd)
+        self.assertEqual(len(parsed), 2)
+
+        # 5. CSV Bridge
+        csv_str = JSONCSVBridge.json_to_csv([{"id": 1, "name": "App"}])
+        self.assertIn("id,name", csv_str)
+        back_json = JSONCSVBridge.csv_to_json(csv_str)
+        self.assertEqual(back_json[0]["id"], 1)
+
+        # 6. Stats Inspector
+        stats = JSONStatsInspector.inspect(nested)
+        self.assertEqual(stats["max_depth"], 4)
+        self.assertEqual(stats["total_keys"], 3)
+
+        # 7. Filter Engine
+        collection = [{"name": "A", "age": 20}, {"name": "B", "age": 35}]
+        filtered = JSONFilterEngine.filter_array(collection, "age", ">", 30)
+        self.assertEqual(len(filtered), 1)
+        self.assertEqual(filtered[0]["name"], "B")
+
+        # 8. Sanitizer
+        secret_obj = {"apiKey": "12345-secret", "email": "user@example.com", "public": "ok"}
+        sanitized = JSONSanitizer.sanitize(secret_obj)
+        self.assertEqual(sanitized["apiKey"], "***REDACTED***")
+        self.assertEqual(sanitized["email"], "***REDACTED***")
+        self.assertEqual(sanitized["public"], "ok")
 
     def test_prompt_json_processor(self):
         messy_prompt = "Hey please configure the build: {targetSdk: 35, 'version': '2.0', active: True,}"
@@ -274,7 +327,7 @@ class TestWorkspaceTools(unittest.TestCase):
 
     def test_registry(self):
         catalog = get_registry_catalog()
-        self.assertGreaterEqual(len(catalog), 32)
+        self.assertGreaterEqual(len(catalog), 33)
 
     def test_monitor(self):
         monitor = WorkspaceMonitor()

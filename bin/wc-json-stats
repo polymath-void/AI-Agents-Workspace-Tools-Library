@@ -1,0 +1,51 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+from pathlib import Path
+
+# Add project root to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from lib.json import JSONStatsInspector
+
+def main():
+    parser = argparse.ArgumentParser(description="Deep JSON Structural, Depth & Token Metrics Profiler")
+    parser.add_argument("target", nargs="?", help="JSON file or raw JSON string")
+    parser.add_argument("--json", action="store_true", help="Output raw JSON metrics")
+    args = parser.parse_args()
+
+    raw_json = args.target
+    if not raw_json and not sys.stdin.isatty():
+        raw_json = sys.stdin.read()
+    elif raw_json:
+        p = Path(raw_json)
+        if p.exists() and p.is_file():
+            raw_json = p.read_text(encoding="utf-8", errors="ignore")
+
+    if not raw_json:
+        parser.print_help()
+        sys.exit(0)
+
+    try:
+        data = json.loads(raw_json)
+    except Exception as e:
+        print(f"❌ Invalid JSON: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    stats = JSONStatsInspector.inspect(data)
+    if args.json:
+        print(json.dumps(stats, indent=2, ensure_ascii=False))
+    else:
+        print("📊 --- JSON Structural Profile ---")
+        print(f"  • Total Keys:        {stats['total_keys']}")
+        print(f"  • Max Nesting Depth: {stats['max_depth']}")
+        print(f"  • Payload Size:      {stats['byte_size']} bytes")
+        print(f"  • Estimated Tokens:  ~{stats['estimated_tokens']} tok")
+        print(f"  • Null Values:       {stats['null_count']}")
+        print("  • Type Distribution:")
+        for t, count in stats['type_distribution'].items():
+            print(f"      - {t}: {count}")
+
+if __name__ == "__main__":
+    main()
