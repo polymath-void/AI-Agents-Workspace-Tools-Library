@@ -2,6 +2,7 @@
 
 [![Build & Test Status](https://img.shields.io/badge/tests-41%2F41%20passing-brightgreen.svg)](#-test-suite--verification)
 [![Tools Count](https://img.shields.io/badge/tools-49%20tools-blue.svg)](#-complete-49-tool-catalog)
+[![Profile Views](https://komarev.com/ghpvc/?username=polymath-void&color=blueviolet&style=flat-square&label=PROFILE+VIEWS)](https://github.com/polymath-void)
 [![Python Version](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.14-blue.svg)](https://python.org)
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Android%20Termux-orange.svg)](#-system-compatibility)
 [![Zero Overhead](https://img.shields.io/badge/overhead-zero--resource-purple.svg)](#-zero-resource-philosophy)
