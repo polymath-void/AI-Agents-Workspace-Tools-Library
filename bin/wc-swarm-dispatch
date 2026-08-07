@@ -1,0 +1,72 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+from pathlib import Path
+
+# Add project root to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from lib.workflow.swarm_dispatcher import SwarmDispatcher
+
+def main():
+    parser = argparse.ArgumentParser(description="Subagent Swarm Dispatch & Decision Engine")
+    subparsers = parser.add_subparsers(dest="command", help="Swarm dispatch command")
+
+    # eval
+    p_eval = subparsers.add_parser("eval", help="Evaluate if task warrants launching a subagent")
+    p_eval.add_argument("task", help="Task description to evaluate")
+    p_eval.add_argument("-f", "--files", type=int, default=1, help="Estimated number of files to touch")
+    p_eval.add_argument("-e", "--exploratory", action="store_true", help="Task is exploratory/research")
+    p_eval.add_argument("-i", "--isolated", action="store_true", help="Task requires isolated workspace branch")
+
+    # spec
+    p_spec = subparsers.add_parser("spec", help="Build structured dispatch specification for a subagent")
+    p_spec.add_argument("role", help="Subagent role (e.g. 'BuildDoctor', 'Codebase Researcher')")
+    p_spec.add_argument("task", help="Actionable task objective")
+    p_spec.add_argument("-m", "--model", default="inherit", choices=["inherit", "flash_lite", "flash", "pro"], help="Model tier")
+    p_spec.add_argument("-w", "--workspace", default="inherit", choices=["inherit", "branch", "share"], help="Workspace isolation mode")
+    p_spec.add_argument("-t", "--type", default="self", choices=["self", "research"], help="Subagent type")
+
+    # aggregate
+    p_agg = subparsers.add_parser("aggregate", help="Aggregate outcomes from multiple subagents")
+    p_agg.add_argument("results_json", help="JSON file or string containing array of subagent outcomes")
+
+    args = parser.parse_args()
+    if not args.command:
+        parser.print_help()
+        sys.exit(0)
+
+    if args.command == "eval":
+        res = SwarmDispatcher.evaluate_subagent_need(
+            args.task,
+            estimated_files=args.files,
+            is_exploratory=args.exploratory,
+            requires_isolation=args.isolated
+        )
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+
+    elif args.command == "spec":
+        spec = SwarmDispatcher.build_dispatch_spec(
+            args.role,
+            args.task,
+            model=args.model,
+            workspace=args.workspace,
+            subagent_type=args.type
+        )
+        print(json.dumps(spec, indent=2, ensure_ascii=False))
+
+    elif args.command == "aggregate":
+        try:
+            p = Path(args.results_json)
+            raw = p.read_text(encoding="utf-8") if p.exists() else args.results_json
+            outcomes = json.loads(raw)
+        except Exception as e:
+            print(f"❌ Failed to parse outcomes JSON: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        res = SwarmDispatcher.aggregate_subagent_outcomes(outcomes)
+        print(json.dumps(res, indent=2, ensure_ascii=False))
+
+if __name__ == "__main__":
+    main()

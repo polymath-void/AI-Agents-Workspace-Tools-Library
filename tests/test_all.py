@@ -18,7 +18,7 @@ from lib.workflow import (
     probe_agent_environment, AgentMemoryStore,
     compress_log_trace, pack_agent_context,
     auto_heal_error, ensure_path_configured, ResourceLock,
-    WorkflowContextManager
+    WorkflowContextManager, SwarmDispatcher
 )
 from lib.system import (
     scan_directory, sanitize_workspace, fast_search,
@@ -78,7 +78,6 @@ class TestWorkspaceTools(unittest.TestCase):
         ctx = mgr.get_context("wf_build")
         self.assertEqual(ctx["frames"]["targetSdk"]["value"], 35)
 
-        # Handoff to verification workflow
         mgr.register_workflow("wf_verify", "Verification Subagent")
         hnd = mgr.handoff_context("wf_build", "wf_verify", keys=["targetSdk"])
         self.assertIn("targetSdk", hnd["transferred_keys"])
@@ -86,6 +85,22 @@ class TestWorkspaceTools(unittest.TestCase):
         verify_ctx = mgr.get_context("wf_verify")
         self.assertEqual(verify_ctx["frames"]["targetSdk"]["value"], 35)
         self.assertNotIn("compose_version", verify_ctx["frames"])
+
+    def test_swarm_dispatcher(self):
+        eval_res = SwarmDispatcher.evaluate_subagent_need("Perform broad research across codebase", is_exploratory=True)
+        self.assertTrue(eval_res["should_launch_subagent"])
+        self.assertEqual(eval_res["suggested_type"], "research")
+
+        spec = SwarmDispatcher.build_dispatch_spec("BuildDoctor", "Fix 16KB memory page alignment in C headers")
+        self.assertEqual(spec["Role"], "BuildDoctor")
+        self.assertIn("16KB", spec["Prompt"])
+
+        agg = SwarmDispatcher.aggregate_subagent_outcomes([
+            {"subagent": "builder", "status": "SUCCESS"},
+            {"subagent": "verifier", "status": "PASSED"}
+        ])
+        self.assertTrue(agg["consensus_passed"])
+        self.assertEqual(agg["succeeded"], 2)
 
     def test_python_suite_modular(self):
         analyzer = ComplexityAnalyzer(self.sandbox / 'test_file.py')
@@ -259,7 +274,7 @@ class TestWorkspaceTools(unittest.TestCase):
 
     def test_registry(self):
         catalog = get_registry_catalog()
-        self.assertGreaterEqual(len(catalog), 31)
+        self.assertGreaterEqual(len(catalog), 32)
 
     def test_monitor(self):
         monitor = WorkspaceMonitor()
