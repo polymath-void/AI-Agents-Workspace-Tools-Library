@@ -4,20 +4,49 @@
 [![Tools Count](https://img.shields.io/badge/tools-49%20tools-blue.svg)](#-complete-49-tool-catalog)
 [![Profile Views](https://komarev.com/ghpvc/?username=polymath-void&color=blueviolet&style=flat-square&label=PROFILE+VIEWS)](https://github.com/polymath-void)
 [![Python Version](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.14-blue.svg)](https://python.org)
-[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Android%20Termux-orange.svg)](#-system-compatibility)
-[![Zero Overhead](https://img.shields.io/badge/overhead-zero--resource-purple.svg)](#-zero-resource-philosophy)
+[![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows%20(WSL)%20%7C%20Android%20(Termux)-orange.svg)](#-cross-platform--zero-resource-architecture)
+[![Zero Overhead](https://img.shields.io/badge/overhead-zero--resource-purple.svg)](#-cross-platform--zero-resource-architecture)
 
-> **The definitive zero-resource, self-healing, high-throughput autonomous task execution, JSON data transformation, and workspace context library for AI agents, multi-agent swarms, and mobile-native workflows.**
+> **The definitive zero-resource, self-healing, cross-platform autonomous task execution, JSON data transformation, and workspace context library for AI agents, multi-agent swarms, host computers, and mobile-native workflows.**
+
+---
+
+## 🌐 Cross-Platform & Zero-Resource Architecture
+
+* **100% Pure Python 3 Standard Library**: Zero external pip dependencies. Every tool is built exclusively on Python's robust standard library (`ast`, `json`, `sqlite3`, `pathlib`, `re`, `subprocess`, `argparse`, `sys`, `os`).
+* **Universal Portability**: Configured with universal `#!/usr/bin/env python3` shebangs. Runs seamlessly across:
+  * 🖥️ **Host Workstations & Cloud** (Linux, macOS, Windows via WSL / Git Bash)
+  * 📱 **Mobile Workspaces** (Android Termux)
+* **Zero Native Binaries**: No compiled C/C++ ELF binaries or architecture-locked machine code—enabling instant execution without cross-compilation or root privileges.
+* **Sub-100ms Latency**: Designed for autonomous AI loops and subagent orchestration with minimal RAM/CPU footprint.
+
+---
+
+## 🚀 Quick Start & Integration
+
+### Option 1: Direct PATH Export (Recommended for Agents & CLI)
+Clone the repository and add `bin/` to your environment's `PATH`:
+```bash
+git clone https://github.com/polymath-void/AI-Agents-Workspace-Tools-Library.git
+cd AI-Agents-Workspace-Tools-Library
+export PATH="$PWD/bin:$PATH"
+```
+
+### Option 2: Editable Python Package
+Install in editable mode for system or virtualenv CLI access:
+```bash
+pip install -e .
+```
 
 ---
 
 ## 📂 Search-Friendly Category Layout
 
-Tools are cleanly partitioned into 4 search-friendly category directories under `categories/` with direct execution links in `bin/`:
+Tools are cleanly partitioned into 4 search-friendly category directories under `categories/` with direct execution symlinks in `bin/` and core logic in `lib/`:
 
 ```
 AI-Agents-Workspace-Tools-Library/
-├── bin/                                # 49 CLI tools
+├── bin/                                # 49 executable CLI tools (universal python3)
 ├── categories/
 │   ├── 01_json_data/                   # 13 JSON & tabular transformation tools
 │   ├── 02_workflow_swarm/              # 12 Swarm orchestration & DAG tools
@@ -95,9 +124,9 @@ AI-Agents-Workspace-Tools-Library/
 
 ## 🧪 Test Suite & Verification
 
-Run the unified regression test suite:
+Run the unified regression test suite across all test modules:
 ```bash
-python3 -m unittest tests/test_all.py
+python3 -m unittest discover tests
 ```
 **Result**:
 ```
