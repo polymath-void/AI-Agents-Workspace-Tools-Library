@@ -1,0 +1,38 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+from pathlib import Path
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from context_pack import compress_log_trace, pack_agent_context
+
+def main():
+    parser = argparse.ArgumentParser(description="Context Window & Token Density Compressor")
+    parser.add_argument("inputs", nargs="*", help="File paths or raw inputs to compress")
+    parser.add_argument("-m", "--max-lines", type=int, default=40, help="Max lines per block (default: 40)")
+
+    args = parser.parse_args()
+
+    if not args.inputs and not sys.stdin.isatty():
+        raw_text = sys.stdin.read()
+        print(compress_log_trace(raw_text, max_lines=args.max_lines))
+        return
+
+    if not args.inputs:
+        parser.print_help()
+        sys.exit(0)
+
+    nodes = {}
+    for item in args.inputs:
+        p = Path(item)
+        if p.exists() and p.is_file():
+            nodes[p.name] = p.read_text(encoding="utf-8", errors="ignore")
+        else:
+            nodes[item[:15]] = item
+
+    print(pack_agent_context(nodes))
+
+if __name__ == "__main__":
+    main()

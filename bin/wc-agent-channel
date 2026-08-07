@@ -1,0 +1,62 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from agent_channel import AgentChannel
+
+def main():
+    parser = argparse.ArgumentParser(description="Inter-Agent Pub/Sub Communication Bus")
+    subparsers = parser.add_subparsers(dest="action", help="Action to perform")
+
+    # Publish
+    p_pub = subparsers.add_parser("pub", help="Publish a message to a topic")
+    p_pub.add_argument("topic", help="Topic name (e.g. task:done, build:fail, handoff)")
+    p_pub.add_argument("payload", help="Message text or JSON payload")
+    p_pub.add_argument("-s", "--sender", default="main_agent", help="Sender agent name")
+    p_pub.add_argument("-r", "--recipient", default="ALL", help="Target recipient (default: ALL)")
+
+    # Read / Poll
+    p_sub = subparsers.add_parser("sub", help="Read messages from a topic")
+    p_sub.add_argument("topic", nargs="?", help="Topic name filter")
+    p_sub.add_argument("-r", "--recipient", help="Recipient filter")
+    p_sub.add_argument("-n", "--limit", type=int, default=10, help="Max messages (default: 10)")
+    p_sub.add_argument("--mark-read", action="store_true", help="Mark messages as read")
+    p_sub.add_argument("--json", action="store_true", help="Output raw JSON")
+
+    # Clear
+    subparsers.add_parser("clear", help="Clear all channel messages")
+
+    args = parser.parse_args()
+    if not args.action:
+        parser.print_help()
+        sys.exit(0)
+
+    channel = AgentChannel()
+
+    if args.action == "pub":
+        msg_id = channel.publish(args.topic, args.payload, sender=args.sender, recipient=args.recipient)
+        print(f"📡 Published message #{msg_id} on topic '{args.topic}' (Sender: {args.sender} -> {args.recipient})")
+
+    elif args.action == "sub":
+        msgs = channel.read_topic(topic=args.topic, recipient=args.recipient, limit=args.limit, mark_read=args.mark_read)
+        if args.json:
+            print(json.dumps(msgs, indent=2))
+            return
+        
+        print(f"\n📬 Channel Messages ({len(msgs)} retrieved):")
+        print("=======================================================")
+        for m in msgs:
+            print(f"  [{m['id']}] {m['created_at']} | Topic: {m['topic']:<15} | From: {m['sender']} -> {m['recipient']}")
+            print(f"      Payload: {m['payload']}")
+        print("=======================================================\n")
+
+    elif args.action == "clear":
+        channel.clear()
+        print("🧹 Cleared all messages from Agent Channel.")
+
+if __name__ == "__main__":
+    main()

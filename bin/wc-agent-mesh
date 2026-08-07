@@ -1,0 +1,62 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from agent_mesh import AgentMesh
+
+def main():
+    parser = argparse.ArgumentParser(description="Multi-Agent Swarm Coordinator & Role Mesh")
+    subparsers = parser.add_subparsers(dest="action", help="Mesh actions")
+
+    # Status
+    p_status = subparsers.add_parser("status", help="Show active agent mesh status")
+    p_status.add_argument("--json", action="store_true", help="Output JSON")
+
+    # Roles
+    subparsers.add_parser("roles", help="List predefined agent swarm roles")
+
+    # Demo Swarm
+    p_demo = subparsers.add_parser("plan", help="Generate multi-agent execution plan for a goal")
+    p_demo.add_argument("goal", help="High-level goal description")
+
+    args = parser.parse_args()
+    if not args.action:
+        parser.print_help()
+        sys.exit(0)
+
+    mesh = AgentMesh()
+
+    if args.action == "roles":
+        print("\n🎭 Predefined Multi-Agent Swarm Roles:")
+        print("=======================================================")
+        for role, desc in mesh.DEFAULT_ROLES.items():
+            print(f"  🤖 {role:<15} : {desc}")
+        print("=======================================================\n")
+
+    elif args.action == "plan":
+        print(f"\n🐝 Multi-Agent Swarm Execution Plan for: '{args.goal}'")
+        print("=======================================================")
+        plan = [
+            ("Architect", f"Analyze requirements and design component boundaries for: {args.goal}"),
+            ("Implementer", f"Execute atomic code modification and scaffold components"),
+            ("BuildDoctor", f"Verify Android Gradle / Termux toolchains and repair build scripts"),
+            ("Verifier", f"Run unit test suite, DAG benchmarks, and contract validation"),
+            ("Auditor", f"Audit token consumption, safety rollback snapshots, and git status")
+        ]
+        for idx, (role, step) in enumerate(plan, 1):
+            print(f"  Step {idx} [{role:<12}]: {step}")
+        print("=======================================================\n")
+
+    elif args.action == "status":
+        st = mesh.get_mesh_status()
+        if args.json:
+            print(json.dumps(st, indent=2))
+        else:
+            print(f"Active Agent Swarm Mesh: {st['total_agents']} registered agents.")
+
+if __name__ == "__main__":
+    main()

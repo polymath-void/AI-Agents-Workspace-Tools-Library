@@ -1,0 +1,54 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from resource_lock import ResourceLock
+
+def main():
+    parser = argparse.ArgumentParser(description="Distributed Resource Mutex Lock for Agentic Workflows")
+    subparsers = parser.add_subparsers(dest="action", help="Lock action")
+
+    p_acq = subparsers.add_parser("acquire", help="Acquire lock on a resource")
+    p_acq.add_argument("resource", help="Resource identifier (file, dir, db)")
+    p_acq.add_argument("-H", "--holder", default="agent_worker", help="Holder name")
+    p_acq.add_argument("-t", "--ttl", type=int, default=60, help="TTL in seconds (default: 60)")
+
+    p_rel = subparsers.add_parser("release", help="Release lock on a resource")
+    p_rel.add_argument("resource", help="Resource identifier")
+    p_rel.add_argument("-H", "--holder", help="Holder name verification")
+
+    p_st = subparsers.add_parser("status", help="Check status of a resource lock")
+    p_st.add_argument("resource", help="Resource identifier")
+
+    args = parser.parse_args()
+    if not args.action:
+        parser.print_help()
+        sys.exit(0)
+
+    locker = ResourceLock()
+
+    if args.action == "acquire":
+        success = locker.acquire(args.resource, holder=args.holder, ttl_seconds=args.ttl)
+        if success:
+            print(f"🔒 Lock acquired on '{args.resource}' by '{args.holder}' (TTL: {args.ttl}s)")
+        else:
+            print(f"❌ Failed to acquire lock on '{args.resource}' (Resource busy or timed out)")
+            sys.exit(1)
+
+    elif args.action == "release":
+        success = locker.release(args.resource, holder=args.holder)
+        if success:
+            print(f"🔓 Lock released on '{args.resource}'")
+        else:
+            print(f"⚠️  Could not release lock on '{args.resource}'")
+
+    elif args.action == "status":
+        st = locker.status(args.resource)
+        print(json.dumps(st, indent=2))
+
+if __name__ == "__main__":
+    main()

@@ -24,6 +24,11 @@ from lib.crash_doctor import parse_stacktrace
 from lib.agent_probe import probe_agent_environment
 from lib.error_healer import auto_heal_error, ensure_path_configured
 from lib.agent_loop import run_agent_loop
+from lib.task_dag import TaskDAG
+from lib.agent_channel import AgentChannel
+from lib.context_pack import compress_log_trace, pack_agent_context
+from lib.resource_lock import ResourceLock
+from lib.agent_mesh import AgentMesh
 from wie.storage.memory import WIEMemory
 
 class TestWorkspaceTools(unittest.TestCase):
@@ -150,6 +155,47 @@ class TestWorkspaceTools(unittest.TestCase):
         self.assertTrue(res["success"])
         self.assertEqual(res["status"], "COMPLETED")
 
+    def test_task_dag(self):
+        dag = TaskDAG()
+        dag.add_task("t1", "Task 1", ["python3", "-c", "print('1')"])
+        dag.add_task("t2", "Task 2", ["python3", "-c", "print('2')"], dependencies=["t1"])
+        res = dag.run_all(max_workers=2, cwd=str(self.sandbox))
+        self.assertEqual(res["completed"], 2)
+        self.assertEqual(res["failed"], 0)
+
+    def test_agent_channel(self):
+        ch_db = self.sandbox / "test_channel.db"
+        channel = AgentChannel(ch_db)
+        msg_id = channel.publish("test_topic", {"action": "build"}, sender="Tester")
+        self.assertGreater(msg_id, 0)
+        msgs = channel.read_topic(topic="test_topic")
+        self.assertEqual(len(msgs), 1)
+        self.assertEqual(msgs[0]["payload"]["action"], "build")
+
+    def test_context_pack(self):
+        raw = "\x1b[31mError\x1b[0m\nLine 1\nLine 1\nLine 1\nLine 2"
+        comp = compress_log_trace(raw)
+        self.assertNotIn("\x1b[31m", comp)
+        self.assertIn("repeated 3 times", comp)
+
+    def test_resource_lock(self):
+        lock_dir = self.sandbox / "locks"
+        locker = ResourceLock(lock_dir)
+        acq = locker.acquire("test_resource", holder="AgentA", ttl_seconds=5)
+        self.assertTrue(acq)
+        st = locker.status("test_resource")
+        self.assertTrue(st["locked"])
+        rel = locker.release("test_resource", holder="AgentA")
+        self.assertTrue(rel)
+
+    def test_agent_mesh(self):
+        mesh = AgentMesh()
+        mesh.register_subagent("builder_01", "Implementer")
+        task = mesh.assign_task("builder_01", "Scaffold Component")
+        self.assertEqual(task["role"], "Implementer")
+        comp = mesh.complete_task("builder_01", "SUCCESS")
+        self.assertEqual(comp["outcome"], "SUCCESS")
+
     def test_env_checker(self):
         telem = get_system_telemetry()
         self.assertIn("python_version", telem)
@@ -159,7 +205,7 @@ class TestWorkspaceTools(unittest.TestCase):
 
     def test_registry(self):
         catalog = get_registry_catalog()
-        self.assertGreaterEqual(len(catalog), 21)
+        self.assertGreaterEqual(len(catalog), 26)
 
     def test_monitor(self):
         monitor = WorkspaceMonitor()

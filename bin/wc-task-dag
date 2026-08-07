@@ -1,0 +1,66 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from task_dag import TaskDAG
+
+def main():
+    parser = argparse.ArgumentParser(description="Multi-Task DAG Dependency & Concurrency Scheduler")
+    parser.add_argument("dag_file", nargs="?", help="JSON file defining DAG task graph")
+    parser.add_argument("-w", "--workers", type=int, default=4, help="Max parallel workers (default: 4)")
+    parser.add_argument("-d", "--dir", default=".", help="Working directory (default: .)")
+    parser.add_argument("--json", action="store_true", help="Output JSON results")
+
+    args = parser.parse_args()
+
+    if not args.dag_file:
+        # Provide sample template
+        sample = {
+            "tasks": [
+                {"id": "env", "name": "Environment Probe", "cmd": "bin/wc-agent-probe", "deps": []},
+                {"id": "search", "name": "Codebase Audit", "cmd": "bin/wc-search 'class ' . -e kt", "deps": ["env"]},
+                {"id": "tests", "name": "Unit Tests", "cmd": "python3 -m unittest tests/test_all.py", "deps": ["env"]}
+            ]
+        }
+        print("Usage: wc-task-dag <workflow.json> [-w workers]\n")
+        print("Sample workflow.json structure:")
+        print(json.dumps(sample, indent=2))
+        sys.exit(0)
+
+    try:
+        with open(args.dag_file, "r") as f:
+            data = json.load(f)
+    except Exception as e:
+        print(f"❌ Error reading DAG file '{args.dag_file}': {e}", file=sys.stderr)
+        sys.exit(1)
+
+    dag = TaskDAG()
+    for t in data.get("tasks", []):
+        dag.add_task(t["id"], t.get("name", t["id"]), t["cmd"], t.get("deps", []))
+
+    print(f"⚡ Launching DAG Workflow ({len(dag.tasks)} tasks across {args.workers} workers)...\n")
+    report = dag.run_all(max_workers=args.workers, cwd=args.dir)
+
+    if args.json:
+        print(json.dumps(report, indent=2))
+        return
+
+    icon = "✅" if report["failed"] == 0 else "⚠️ "
+    print(f"=======================================================")
+    print(f"   DAG WORKFLOW EXECUTION SUMMARY [{icon} {report['completed']}/{report['total_tasks']} OK]")
+    print(f"=======================================================")
+    print(f"  Duration  : {report['total_duration']}s")
+    print(f"  Completed : {report['completed']}")
+    print(f"  Failed    : {report['failed']}")
+    print("-------------------------------------------------------")
+    for t_id, r in report["results"].items():
+        st_icon = "✅" if r["success"] else "❌"
+        print(f"  {st_icon} Task [{t_id:<10}] ({r['duration']}s) : {r['output'][:60]}")
+    print("=======================================================\n")
+
+if __name__ == "__main__":
+    main()
