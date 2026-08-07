@@ -17,7 +17,8 @@ from lib.workflow import (
     TaskDAG, AgentMesh, AgentChannel, run_agent_loop,
     probe_agent_environment, AgentMemoryStore,
     compress_log_trace, pack_agent_context,
-    auto_heal_error, ensure_path_configured, ResourceLock
+    auto_heal_error, ensure_path_configured, ResourceLock,
+    WorkflowContextManager
 )
 from lib.system import (
     scan_directory, sanitize_workspace, fast_search,
@@ -66,6 +67,25 @@ class TestWorkspaceTools(unittest.TestCase):
         intent = PromptJSONProcessor.normalize_prompt_intent("Please fix build and update app/build.gradle")
         self.assertEqual(intent["detected_action"], "BUILD_REPAIR")
         self.assertIn("app/build.gradle", intent["parameters"]["referenced_files"])
+
+    def test_workflow_context_manager(self):
+        ctx_db = self.sandbox / "wf_context.db"
+        mgr = WorkflowContextManager(ctx_db)
+        mgr.register_workflow("wf_build", "Build Subagent")
+        mgr.set_frame("wf_build", "targetSdk", 35)
+        mgr.set_frame("wf_build", "compose_version", "1.7.0")
+
+        ctx = mgr.get_context("wf_build")
+        self.assertEqual(ctx["frames"]["targetSdk"]["value"], 35)
+
+        # Handoff to verification workflow
+        mgr.register_workflow("wf_verify", "Verification Subagent")
+        hnd = mgr.handoff_context("wf_build", "wf_verify", keys=["targetSdk"])
+        self.assertIn("targetSdk", hnd["transferred_keys"])
+
+        verify_ctx = mgr.get_context("wf_verify")
+        self.assertEqual(verify_ctx["frames"]["targetSdk"]["value"], 35)
+        self.assertNotIn("compose_version", verify_ctx["frames"])
 
     def test_python_suite_modular(self):
         analyzer = ComplexityAnalyzer(self.sandbox / 'test_file.py')
@@ -239,7 +259,7 @@ class TestWorkspaceTools(unittest.TestCase):
 
     def test_registry(self):
         catalog = get_registry_catalog()
-        self.assertGreaterEqual(len(catalog), 30)
+        self.assertGreaterEqual(len(catalog), 31)
 
     def test_monitor(self):
         monitor = WorkspaceMonitor()
