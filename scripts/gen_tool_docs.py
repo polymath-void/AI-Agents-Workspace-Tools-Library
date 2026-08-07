@@ -1,4 +1,4 @@
-#!/data/data/com.termux/files/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Automated Tool Overview Documentation Generator for AI-Agents-Workspace-Tools-Library.
 Generates comprehensive docs/tools/<tool_name>.md files adhering to the Agent Guidelines contract.

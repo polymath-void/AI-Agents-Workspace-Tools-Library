@@ -73,7 +73,7 @@ On **every single tool creation or push**, agents MUST fulfill the **7-Point Uni
    - Write cleanly encapsulated Python classes with static/class methods inside the appropriate subpackage (`lib/json/`, `lib/workflow/`, `lib/py/`, `lib/system/`).
    - Export public interfaces in `lib/<package>/__init__.py`.
 2. **CLI Executable (`bin/`)**:
-   - Include multi-platform compatible shebang (`#!/data/data/com.termux/files/usr/bin/env python3` / `#!/usr/bin/env python3`).
+   - Include multi-platform compatible shebang (`#!/usr/bin/env python3` / `#!/usr/bin/env python3`).
    - Implement `argparse` with descriptive `--help`, stdin pipe support, and `--json` machine-readable output flags.
    - Ensure executable permissions (`chmod +x bin/<tool_name>`).
 3. **Registry Registration (`lib/registry.py`)**:
