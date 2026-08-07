@@ -3,34 +3,30 @@ import os
 import json
 import shutil
 from pathlib import Path
-from lib.scanner import scan_directory
-from lib.manager import sanitize_workspace
-from lib.analyzer import ComplexityAnalyzer, analyze_workspace, workspace_summary
-from lib.monitor import WorkspaceMonitor
-from lib.fast_finder import fast_search
-from lib.dep_inspector import inspect_dependencies
-from lib.git_helper import get_git_status
-from lib.env_checker import get_system_telemetry, get_installed_toolchains
+
+# Test direct modular imports
+from lib.json import JSONSuite
+from lib.py import (
+    ComplexityAnalyzer, analyze_workspace, workspace_summary,
+    batch_code_replace, inject_import,
+    scaffold_compose_component, scaffold_repository,
+    get_system_telemetry, get_installed_toolchains,
+    parse_stacktrace
+)
+from lib.workflow import (
+    TaskDAG, AgentMesh, AgentChannel, run_agent_loop,
+    probe_agent_environment, AgentMemoryStore,
+    compress_log_trace, pack_agent_context,
+    auto_heal_error, ensure_path_configured, ResourceLock
+)
+from lib.system import (
+    scan_directory, sanitize_workspace, fast_search,
+    inspect_dependencies, get_git_status, sync_branches,
+    validate_jni_contracts, pack_piuu_bundle, verify_piuu_bundle,
+    run_benchmark, execute_autonomous_task, ObjectComparator,
+    WorkspaceMonitor, diagnose_android_build
+)
 from lib.registry import get_registry_catalog
-from lib.code_modder import batch_code_replace, inject_import
-from lib.build_doctor import diagnose_android_build
-from lib.bundle_packer import pack_piuu_bundle, verify_piuu_bundle
-from lib.benchmark import run_benchmark
-from lib.task_executor import execute_autonomous_task
-from lib.agent_memory import AgentMemoryStore
-from lib.contract_validator import validate_jni_contracts
-from lib.scaffolder import scaffold_compose_component, scaffold_repository
-from lib.crash_doctor import parse_stacktrace
-from lib.agent_probe import probe_agent_environment
-from lib.error_healer import auto_heal_error, ensure_path_configured
-from lib.agent_loop import run_agent_loop
-from lib.task_dag import TaskDAG
-from lib.agent_channel import AgentChannel
-from lib.context_pack import compress_log_trace, pack_agent_context
-from lib.resource_lock import ResourceLock
-from lib.agent_mesh import AgentMesh
-from lib.object_comparator import ObjectComparator
-from lib.json_suite import JSONSuite
 from wie.storage.memory import WIEMemory
 
 class TestWorkspaceTools(unittest.TestCase):
@@ -47,6 +43,21 @@ class TestWorkspaceTools(unittest.TestCase):
     def tearDown(self):
         if self.sandbox.exists():
             shutil.rmtree(self.sandbox)
+
+    def test_json_suite_modular(self):
+        data = {"users": [{"name": "Alice", "role": "admin"}, {"name": "Bob", "role": "dev"}]}
+        self.assertEqual(JSONSuite.query(data, "users[0].name"), "Alice")
+
+        JSONSuite.patch_set(data, "users[1].active", True)
+        self.assertTrue(JSONSuite.query(data, "users[1].active"))
+
+        schema = {"required": ["name"], "types": {"name": "str"}}
+        valid = JSONSuite.validate_schema({"name": "Alice"}, schema)
+        self.assertTrue(valid["valid"])
+
+    def test_python_suite_modular(self):
+        analyzer = ComplexityAnalyzer(self.sandbox / 'test_file.py')
+        self.assertEqual(analyzer.calculate_complexity(), 2)
 
     def test_scanner(self):
         tree = scan_directory(self.sandbox)
@@ -207,17 +218,6 @@ class TestWorkspaceTools(unittest.TestCase):
         self.assertIn("c", diff["added"])
         self.assertEqual(diff["value_diffs"][0]["key"], "b")
 
-    def test_json_suite(self):
-        data = {"users": [{"name": "Alice", "role": "admin"}, {"name": "Bob", "role": "dev"}]}
-        self.assertEqual(JSONSuite.query(data, "users[0].name"), "Alice")
-
-        JSONSuite.patch_set(data, "users[1].active", True)
-        self.assertTrue(JSONSuite.query(data, "users[1].active"))
-
-        schema = {"required": ["name"], "types": {"name": "str"}}
-        valid = JSONSuite.validate_schema({"name": "Alice"}, schema)
-        self.assertTrue(valid["valid"])
-
     def test_env_checker(self):
         telem = get_system_telemetry()
         self.assertIn("python_version", telem)
@@ -227,7 +227,7 @@ class TestWorkspaceTools(unittest.TestCase):
 
     def test_registry(self):
         catalog = get_registry_catalog()
-        self.assertGreaterEqual(len(catalog), 27)
+        self.assertGreaterEqual(len(catalog), 30)
 
     def test_monitor(self):
         monitor = WorkspaceMonitor()
