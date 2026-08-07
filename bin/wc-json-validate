@@ -1,0 +1,86 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+from pathlib import Path
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from json_suite import JSONSuite
+
+def main():
+    parser = argparse.ArgumentParser(description="Zero-Overhead JSON Schema & Manifest Validator")
+    parser.add_argument("target", help="JSON data file or raw JSON string")
+    parser.add_argument("schema", nargs="?", default="manifest", help="JSON schema file (or predefined: manifest, extension, config)")
+    parser.add_argument("--json", action="store_true", help="Output JSON receipt")
+
+    args = parser.parse_args()
+
+    # Predefined schemas
+    PREDEFINED_SCHEMAS = {
+        "manifest": {
+            "required": ["name", "version", "main"],
+            "types": {"name": "str", "version": "str", "main": "str"}
+        },
+        "extension": {
+            "required": ["name", "version", "author", "type"],
+            "types": {"name": "str", "version": "str", "author": "str", "type": "str"}
+        },
+        "config": {
+            "required": ["targetSdk", "minSdk"],
+            "types": {"targetSdk": "int", "minSdk": "int"}
+        }
+    }
+
+    raw_json = None
+    target_name = args.target[:20]
+    p = Path(args.target)
+    if p.exists() and p.is_file():
+        raw_json = p.read_text(encoding="utf-8", errors="ignore")
+        target_name = p.name
+    else:
+        raw_json = args.target
+
+    try:
+        data = json.loads(raw_json)
+    except Exception as e:
+        print(f"❌ Error parsing JSON input: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    schema_def = None
+    if args.schema in PREDEFINED_SCHEMAS:
+        schema_def = PREDEFINED_SCHEMAS[args.schema]
+    elif args.schema:
+        s_path = Path(args.schema)
+        if s_path.exists() and s_path.is_file():
+            try:
+                schema_def = json.loads(s_path.read_text(encoding="utf-8", errors="ignore"))
+            except Exception as e:
+                print(f"❌ Error parsing schema file: {e}", file=sys.stderr)
+                sys.exit(1)
+        else:
+            try:
+                schema_def = json.loads(args.schema)
+            except Exception:
+                pass
+
+    if not schema_def:
+        schema_def = PREDEFINED_SCHEMAS["manifest"]
+
+    res = JSONSuite.validate_schema(data, schema_def)
+
+    if args.json:
+        print(json.dumps(res, indent=2))
+        sys.exit(0 if res["valid"] else 1)
+
+    if res["valid"]:
+        print(f"✅ Schema Validation Passed for '{target_name}'")
+    else:
+        print(f"❌ Schema Validation Failed for '{target_name}':")
+        for err in res["errors"]:
+            print(f"  - {err}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()

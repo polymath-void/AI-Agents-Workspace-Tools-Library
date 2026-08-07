@@ -1,0 +1,85 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+from pathlib import Path
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from json_suite import JSONSuite
+
+def main():
+    parser = argparse.ArgumentParser(description="Atomic JSON Modifier, Patcher & Deep Merger")
+    subparsers = parser.add_subparsers(dest="action", help="Patch action")
+
+    # Set key
+    p_set = subparsers.add_parser("set", help="Set a nested key value")
+    p_set.add_argument("file", help="JSON file path")
+    p_set.add_argument("path_expr", help="Dot/bracket path (e.g. 'build.targetSdk')")
+    p_set.add_argument("value", help="Value to set (string, or JSON primitive/object)")
+    p_set.add_argument("-i", "--in-place", action="store_true", help="Write changes directly to file")
+
+    # Merge
+    p_merge = subparsers.add_parser("merge", help="Deep merge another JSON into file")
+    p_merge.add_argument("file", help="Target JSON file path")
+    p_merge.add_argument("update", help="Update JSON file path or raw JSON string")
+    p_merge.add_argument("-i", "--in-place", action="store_true", help="Write changes directly to file")
+
+    args = parser.parse_args()
+    if not args.action:
+        parser.print_help()
+        sys.exit(0)
+
+    p = Path(args.file)
+    if not p.exists() or not p.is_file():
+        print(f"❌ File not found: {args.file}", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        data = json.loads(p.read_text(encoding="utf-8", errors="ignore"))
+    except Exception as e:
+        print(f"❌ Error parsing target JSON: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    if args.action == "set":
+        # Parse value as json if possible
+        val = args.value
+        try:
+            val = json.loads(args.value)
+        except Exception:
+            pass
+
+        updated = JSONSuite.patch_set(data, args.path_expr, val)
+        out_text = json.dumps(updated, indent=2, ensure_ascii=False)
+
+        if args.in_place:
+            p.write_text(out_text)
+            print(f"✅ Updated '{args.path_expr}' in '{args.file}'")
+        else:
+            print(out_text)
+
+    elif args.action == "merge":
+        up_path = Path(args.update)
+        if up_path.exists() and up_path.is_file():
+            up_text = up_path.read_text(encoding="utf-8", errors="ignore")
+        else:
+            up_text = args.update
+
+        try:
+            up_data = json.loads(up_text)
+        except Exception as e:
+            print(f"❌ Error parsing update JSON: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        merged = JSONSuite.deep_merge(data, up_data)
+        out_text = json.dumps(merged, indent=2, ensure_ascii=False)
+
+        if args.in_place:
+            p.write_text(out_text)
+            print(f"✅ Merged updates into '{args.file}'")
+        else:
+            print(out_text)
+
+if __name__ == "__main__":
+    main()

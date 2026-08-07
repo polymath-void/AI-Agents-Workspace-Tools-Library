@@ -30,6 +30,7 @@ from lib.context_pack import compress_log_trace, pack_agent_context
 from lib.resource_lock import ResourceLock
 from lib.agent_mesh import AgentMesh
 from lib.object_comparator import ObjectComparator
+from lib.json_suite import JSONSuite
 from wie.storage.memory import WIEMemory
 
 class TestWorkspaceTools(unittest.TestCase):
@@ -206,6 +207,17 @@ class TestWorkspaceTools(unittest.TestCase):
         self.assertIn("c", diff["added"])
         self.assertEqual(diff["value_diffs"][0]["key"], "b")
 
+    def test_json_suite(self):
+        data = {"users": [{"name": "Alice", "role": "admin"}, {"name": "Bob", "role": "dev"}]}
+        self.assertEqual(JSONSuite.query(data, "users[0].name"), "Alice")
+
+        JSONSuite.patch_set(data, "users[1].active", True)
+        self.assertTrue(JSONSuite.query(data, "users[1].active"))
+
+        schema = {"required": ["name"], "types": {"name": "str"}}
+        valid = JSONSuite.validate_schema({"name": "Alice"}, schema)
+        self.assertTrue(valid["valid"])
+
     def test_env_checker(self):
         telem = get_system_telemetry()
         self.assertIn("python_version", telem)
@@ -215,7 +227,7 @@ class TestWorkspaceTools(unittest.TestCase):
 
     def test_registry(self):
         catalog = get_registry_catalog()
-        self.assertGreaterEqual(len(catalog), 26)
+        self.assertGreaterEqual(len(catalog), 27)
 
     def test_monitor(self):
         monitor = WorkspaceMonitor()

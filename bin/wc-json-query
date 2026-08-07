@@ -1,0 +1,54 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+from pathlib import Path
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from json_suite import JSONSuite
+
+def main():
+    parser = argparse.ArgumentParser(description="Lightning-Fast JSON Query & Token-Minifier Engine")
+    parser.add_argument("path_expr", nargs="?", default=".", help="Dot/bracket query expression (e.g. 'scripts.test' or 'users[0].name')")
+    parser.add_argument("target", nargs="?", help="JSON file path or raw JSON string")
+    parser.add_argument("-m", "--minify", action="store_true", help="Output token-minified JSON without whitespace")
+    parser.add_argument("--raw", action="store_true", help="Output raw string value without quotes")
+
+    args = parser.parse_args()
+
+    raw_json = None
+    if args.target:
+        p = Path(args.target)
+        if p.exists() and p.is_file():
+            raw_json = p.read_text(encoding="utf-8", errors="ignore")
+        else:
+            raw_json = args.target
+    elif not sys.stdin.isatty():
+        raw_json = sys.stdin.read()
+
+    if not raw_json:
+        parser.print_help()
+        sys.exit(0)
+
+    try:
+        data = json.loads(raw_json)
+    except Exception as e:
+        print(f"❌ Invalid JSON input: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    result = JSONSuite.query(data, args.path_expr)
+
+    if result is None:
+        sys.exit(1)
+
+    if args.raw and isinstance(result, (str, int, float, bool)):
+        print(result)
+    elif args.minify:
+        print(JSONSuite.minify_pack(result))
+    else:
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+
+if __name__ == "__main__":
+    main()
