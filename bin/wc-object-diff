@@ -1,0 +1,107 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+from pathlib import Path
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from object_comparator import ObjectComparator
+
+def main():
+    parser = argparse.ArgumentParser(description="Autonomous Semantic Object Comparator & Entity Identifier")
+    subparsers = parser.add_subparsers(dest="action", help="Action to perform")
+
+    # 1. Identify
+    p_id = subparsers.add_parser("identify", help="Identify object type & schema")
+    p_id.add_argument("target", help="File path or string snippet")
+
+    # 2. Symbols
+    p_sym = subparsers.add_parser("symbols", help="Extract named entities & symbols from code object")
+    p_sym.add_argument("file", help="Source code file path")
+    p_sym.add_argument("--json", action="store_true", help="Output JSON")
+
+    # 3. Compare
+    p_cmp = subparsers.add_parser("compare", help="Compare two objects / files semantically")
+    p_cmp.add_argument("target1", help="First file / object path")
+    p_cmp.add_argument("target2", help="Second file / object path")
+    p_cmp.add_argument("--json", action="store_true", help="Output JSON diff")
+
+    args = parser.parse_args()
+    if not args.action:
+        parser.print_help()
+        sys.exit(0)
+
+    cmp = ObjectComparator()
+
+    if args.action == "identify":
+        p = Path(args.target)
+        content = p.read_text(encoding="utf-8", errors="ignore") if p.exists() and p.is_file() else args.target
+        obj_type = cmp.identify_object_type(content)
+        print(f"🔍 Identified Object Type: {obj_type}")
+
+    elif args.action == "symbols":
+        p = Path(args.file)
+        if not p.exists() or not p.is_file():
+            print(f"❌ File not found: {args.file}", file=sys.stderr)
+            sys.exit(1)
+        content = p.read_text(encoding="utf-8", errors="ignore")
+        syms = cmp.extract_symbols(content)
+        if args.json:
+            print(json.dumps(syms, indent=2))
+        else:
+            print(f"\n🧩 Extracted Symbols for: '{p.name}'")
+            print("=======================================================")
+            print(f"  Classes   ({len(syms['classes'])}): {', '.join([c['name'] for c in syms['classes']]) or 'None'}")
+            print(f"  Functions ({len(syms['functions'])}): {', '.join([f['name'] for f in syms['functions']]) or 'None'}")
+            print(f"  Properties({len(syms['properties'])}): {', '.join(syms['properties']) or 'None'}")
+            print("=======================================================\n")
+
+    elif args.action == "compare":
+        p1 = Path(args.target1)
+        p2 = Path(args.target2)
+
+        content1 = p1.read_text(encoding="utf-8", errors="ignore") if p1.exists() and p1.is_file() else args.target1
+        content2 = p2.read_text(encoding="utf-8", errors="ignore") if p2.exists() and p2.is_file() else args.target2
+
+        t1 = cmp.identify_object_type(content1)
+        t2 = cmp.identify_object_type(content2)
+
+        if t1 == "JSON_OBJECT" or t2 == "JSON_OBJECT":
+            try:
+                j1 = json.loads(content1)
+                j2 = json.loads(content2)
+                diff = cmp.compare_json_objects(j1, j2)
+                if args.json:
+                    print(json.dumps(diff, indent=2))
+                    return
+                print(f"\n📊 JSON / Schema Structural Diff:")
+                print("=======================================================")
+                print(f"  Added Keys       : {diff['added'] or 'None'}")
+                print(f"  Removed Keys     : {diff['removed'] or 'None'}")
+                print(f"  Type Mismatches  : {diff['type_mismatches'] or 'None'}")
+                print(f"  Value Mismatches : {len(diff['value_diffs'])} differences")
+                for vd in diff['value_diffs'][:5]:
+                    print(f"    - {vd['key']}: '{vd['old_value']}' -> '{vd['new_value']}'")
+                print("=======================================================\n")
+                return
+            except Exception as e:
+                pass
+
+        # Code Entity comparison
+        code_diff = cmp.compare_code_entities(content1, content2)
+        if args.json:
+            print(json.dumps(code_diff, indent=2))
+            return
+        print(f"\n📊 Code Entity Semantic Diff:")
+        print("=======================================================")
+        print(f"  Classes Added    : {code_diff['classes_added'] or 'None'}")
+        print(f"  Classes Removed  : {code_diff['classes_removed'] or 'None'}")
+        print(f"  Functions Added  : {code_diff['functions_added'] or 'None'}")
+        print(f"  Functions Removed: {code_diff['functions_removed'] or 'None'}")
+        print(f"  Signature Drifts : {code_diff['signature_changes'] or 'None'}")
+        print("=======================================================\n")
+
+if __name__ == "__main__":
+    main()

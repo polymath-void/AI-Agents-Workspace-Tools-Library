@@ -29,6 +29,7 @@ from lib.agent_channel import AgentChannel
 from lib.context_pack import compress_log_trace, pack_agent_context
 from lib.resource_lock import ResourceLock
 from lib.agent_mesh import AgentMesh
+from lib.object_comparator import ObjectComparator
 from wie.storage.memory import WIEMemory
 
 class TestWorkspaceTools(unittest.TestCase):
@@ -195,6 +196,15 @@ class TestWorkspaceTools(unittest.TestCase):
         self.assertEqual(task["role"], "Implementer")
         comp = mesh.complete_task("builder_01", "SUCCESS")
         self.assertEqual(comp["outcome"], "SUCCESS")
+
+    def test_object_comparator(self):
+        cmp = ObjectComparator()
+        self.assertEqual(cmp.identify_object_type('{"key": "val"}'), "JSON_OBJECT")
+        self.assertEqual(cmp.identify_object_type("class MyTest:\n    def run(self): pass"), "PYTHON_CODE_OBJECT")
+
+        diff = cmp.compare_json_objects({"a": 1, "b": 2}, {"a": 1, "b": 99, "c": 3})
+        self.assertIn("c", diff["added"])
+        self.assertEqual(diff["value_diffs"][0]["key"], "b")
 
     def test_env_checker(self):
         telem = get_system_telemetry()
