@@ -1,0 +1,61 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from env_checker import get_system_telemetry, get_installed_toolchains, batch_fix_shebangs
+
+def main():
+    if len(sys.argv) < 2 or sys.argv[1] in ("-h", "--help"):
+        print("Usage: wc-termux-env <command> [arguments...]")
+        print("  Commands:")
+        print("    status       : Shows system RAM, CPU load, and Termux prefix environment")
+        print("    toolchains   : Inspects installed compilers, runtimes, and CLI utilities")
+        print("    fix-shebangs : Automatically scans & fixes script shebangs for Termux")
+        print("  Examples:")
+        print("    wc-termux-env status")
+        print("    wc-termux-env toolchains")
+        print("    wc-termux-env fix-shebangs ./scripts")
+        sys.exit(0)
+
+    cmd = sys.argv[1]
+
+    if cmd == "status":
+        telem = get_system_telemetry()
+        print("\n📱 --- Android / Termux Environment Status ---")
+        print(f"  Termux Environment : {'✅ Yes' if telem['is_termux'] else '❌ Standard Linux'}")
+        print(f"  Prefix Path        : {telem['prefix']}")
+        print(f"  Home Path          : {telem['home']}")
+        print(f"  Python Version     : {telem['python_version']}")
+        print(f"  Total RAM          : {telem['total_ram_mb']} MB")
+        print(f"  Available RAM      : {telem['available_ram_mb']} MB ({telem['free_ram_mb']} MB Free)")
+        if telem['load_avg']:
+            print(f"  CPU Load (1/5/15m) : {' / '.join(telem['load_avg'])}")
+        print("----------------------------------------------")
+
+    elif cmd == "toolchains":
+        tools = get_installed_toolchains()
+        print("\n⚙️ --- Developer Toolchains Inspection ---")
+        for name, info in tools.items():
+            status_icon = "✅" if info["installed"] else "❌"
+            ver_text = f"({info['version']})" if info["installed"] else "[Not Installed]"
+            print(f"  {status_icon} {name:<10} : {ver_text}")
+        print("------------------------------------------")
+
+    elif cmd == "fix-shebangs":
+        target_dir = sys.argv[2] if len(sys.argv) > 2 else "."
+        print(f"Scanning scripts in '{target_dir}' to fix shebangs for Termux...")
+        fixed = batch_fix_shebangs(target_dir)
+        if fixed:
+            print(f"✅ Repaired {len(fixed)} script shebang(s):")
+            for f in fixed:
+                print(f"  - {f}")
+        else:
+            print("No broken or non-Termux shebangs found.")
+    else:
+        print(f"Unknown command: '{cmd}'. Use 'status', 'toolchains', or 'fix-shebangs'.", file=sys.stderr)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()

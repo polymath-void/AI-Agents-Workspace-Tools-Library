@@ -1,0 +1,37 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from monitor import WorkspaceMonitor
+
+DEFAULT_CONFIG = os.path.abspath(os.path.join(os.path.dirname(__file__), '../config/workspace-health.json'))
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: wc-monitor <root_path> [config_path]")
+        print("  <root_path>   : Directory to monitor")
+        print(f"  [config_path] : Optional path to health config (defaults to {DEFAULT_CONFIG})")
+        sys.exit(1)
+        
+    root_path = sys.argv[1]
+    config_path = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_CONFIG
+    
+    if not os.path.exists(root_path):
+        print(f"Error: Target path '{root_path}' does not exist.", file=sys.stderr)
+        sys.exit(1)
+        
+    print(f"Monitoring workspace health for: {root_path} (Config: {os.path.basename(config_path)})...")
+    monitor = WorkspaceMonitor(config_path)
+    anomalies = monitor.check_health(root_path)
+    
+    if anomalies:
+        print(f"\n⚠️  {len(anomalies)} Anomaly(ies) detected:")
+        for anomaly in anomalies:
+            print(f"  - {anomaly}")
+    else:
+        print("✅ Workspace is healthy. No anomalies detected.")
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,31 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+# Add the directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
+from wie.observer import PollingObserver
+from wie.orchestrator import WIEOrchestrator
+from wie.storage.memory import WIEMemory
+
+def dummy_agent(event_type, path):
+    print(f"Agent notified: {event_type} - {path}")
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: wie-runner <watch_directory>")
+        sys.exit(1)
+        
+    watch_path = sys.argv[1]
+    
+    orchestrator = WIEOrchestrator()
+    memory = WIEMemory("storage/wie.db")
+    
+    # Register agents
+    orchestrator.register_agent("Logger", memory.log_event)
+    orchestrator.register_agent("Notifier", dummy_agent)
+    
+    observer = PollingObserver(watch_path, orchestrator.handle_event)
+    observer.run()
+
+if __name__ == "__main__":
+    main()

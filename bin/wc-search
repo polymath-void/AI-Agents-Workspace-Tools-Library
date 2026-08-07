@@ -1,0 +1,60 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import json
+import argparse
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from fast_finder import fast_search
+
+def main():
+    parser = argparse.ArgumentParser(description="Fast context-aware workspace search skipping noise dirs")
+    parser.add_argument("query", help="Text or pattern to search for")
+    parser.add_argument("path", nargs="?", default=".", help="Directory to search (default: current directory)")
+    parser.add_argument("-r", "--regex", action="store_true", help="Treat query as regular expression")
+    parser.add_argument("-s", "--case-sensitive", action="store_true", help="Perform case-sensitive search")
+    parser.add_argument("-e", "--ext", help="Comma-separated file extensions (e.g. kt,py,json)")
+    parser.add_argument("-C", "--context", type=int, default=0, help="Number of context lines before and after match")
+    parser.add_argument("-m", "--max", type=int, default=100, help="Maximum number of matches (default: 100)")
+    parser.add_argument("--json", action="store_true", help="Output results in JSON format")
+
+    if len(sys.argv) < 2:
+        parser.print_help()
+        sys.exit(0)
+
+    args = parser.parse_args()
+    extensions = args.ext.split(",") if args.ext else None
+
+    matches = fast_search(
+        root_path=args.path,
+        query=args.query,
+        is_regex=args.regex,
+        case_insensitive=not args.case_sensitive,
+        extensions=extensions,
+        context_lines=args.context,
+        max_results=args.max
+    )
+
+    if args.json:
+        print(json.dumps(matches, indent=2))
+    else:
+        if not matches:
+            print(f"No matches found for: '{args.query}' in {args.path}")
+            sys.exit(0)
+
+        print(f"\n🔍 Found {len(matches)} match(es) for '{args.query}':\n")
+        current_file = None
+        for m in matches:
+            if m["file"] != current_file:
+                current_file = m["file"]
+                print(f"\n📁 {current_file}")
+            
+            for line in m.get("context_before", []):
+                print(f"  \033[90m{line}\033[0m")
+            print(f"  \033[1;34mLine {m['line_number']}:\033[0m {m['line_content']}")
+            for line in m.get("context_after", []):
+                print(f"  \033[90m{line}\033[0m")
+
+if __name__ == "__main__":
+    main()

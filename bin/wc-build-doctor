@@ -1,0 +1,45 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from build_doctor import diagnose_android_build, auto_fix_build_issues
+
+def main():
+    parser = argparse.ArgumentParser(description="Self-healing build & configuration doctor")
+    parser.add_argument("path", nargs="?", default=".", help="Project root directory (default: .)")
+    parser.add_argument("--fix", action="store_true", help="Automatically apply recommended repairs")
+
+    args = parser.parse_args()
+
+    print(f"\n🩺 Diagnosing build health in '{args.path}'...\n")
+    report = diagnose_android_build(args.path)
+
+    if not report["is_android"]:
+        print(f"Target is not an Android project: {report['issues']}")
+        sys.exit(0)
+
+    if report["healthy"]:
+        print("✅ Build configuration is healthy and conforms to Android standards.")
+    else:
+        print(f"⚠️  Found {len(report['issues'])} potential build issue(s):")
+        for i, issue in enumerate(report["issues"], 1):
+            print(f"  {i}. {issue}")
+        
+        print("\n💡 Recommendations:")
+        for r in report["recommendations"]:
+            print(f"  - {r}")
+
+    if args.fix:
+        print("\n🔧 Applying automatic repairs...")
+        fixes = auto_fix_build_issues(args.path)
+        if fixes:
+            for f in fixes:
+                print(f"  ✅ Repaired: {f}")
+        else:
+            print("  No automatic script fixes required.")
+
+if __name__ == "__main__":
+    main()

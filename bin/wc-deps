@@ -1,0 +1,73 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import json
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from dep_inspector import inspect_dependencies
+
+def main():
+    root_path = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("-") else "."
+    output_json = "--json" in sys.argv
+
+    if "-h" in sys.argv or "--help" in sys.argv:
+        print("Usage: wc-deps [directory] [--json]")
+        print("  Inspects dependencies across Gradle, NPM, Python, and Rust")
+        sys.exit(0)
+
+    deps = inspect_dependencies(root_path)
+
+    if output_json:
+        print(json.dumps(deps, indent=2))
+        return
+
+    print(f"\n📦 --- Multi-Ecosystem Dependency Report for '{root_path}' ---\n")
+
+    # Gradle / Android
+    if deps["gradle"]:
+        print("🤖 Android / Gradle Manifests:")
+        for g in deps["gradle"]:
+            print(f"  📄 {g['file']}")
+            if g["plugins"]:
+                print(f"     Plugins ({len(g['plugins'])}): {', '.join(g['plugins'][:5])}")
+            print(f"     Dependencies ({len(g['dependencies'])}):")
+            for d in g["dependencies"][:10]:
+                print(f"       - {d}")
+            if len(g["dependencies"]) > 10:
+                print(f"       ... and {len(g['dependencies']) - 10} more")
+        print()
+
+    # NPM / Node / Web
+    if deps["npm"]:
+        print("🌐 Node.js / NPM Packages:")
+        for n in deps["npm"]:
+            print(f"  📄 {n['file']} ({n['name']} v{n['version']})")
+            prod_deps = list(n["dependencies"].keys())
+            dev_deps = list(n["devDependencies"].keys())
+            print(f"     Dependencies ({len(prod_deps)}): {', '.join(prod_deps[:8])}")
+            if dev_deps:
+                print(f"     DevDependencies ({len(dev_deps)}): {', '.join(dev_deps[:6])}")
+        print()
+
+    # Python
+    if deps["python"]:
+        print("🐍 Python Packages:")
+        for p in deps["python"]:
+            print(f"  📄 {p['file']} ({len(p['entries'])} entries)")
+            for e in p["entries"][:8]:
+                print(f"     - {e}")
+        print()
+
+    # Rust
+    if deps["rust"]:
+        print("🦀 Rust / Cargo Crates:")
+        for r in deps["rust"]:
+            print(f"  📄 {r['file']} ({len(r['raw_deps'])} entries)")
+        print()
+
+    if not any(deps.values()):
+        print("No dependency manifests found in target directory.")
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,54 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from bundle_packer import pack_piuu_bundle, verify_piuu_bundle
+
+def main():
+    parser = argparse.ArgumentParser(description="End-to-end bundle packager and release integrity tool")
+    subparsers = parser.add_subparsers(dest="command", help="Subcommand to execute")
+
+    # Pack subcommand
+    pack_parser = subparsers.add_parser("pack", help="Pack directory into .piuu extension bundle")
+    pack_parser.add_argument("source", help="Source folder to package")
+    pack_parser.add_argument("output", help="Output .piuu file path")
+    pack_parser.add_argument("--name", default="extension", help="Extension name")
+    pack_parser.add_argument("--version", default="1.0.0", help="Extension version")
+
+    # Verify subcommand
+    verify_parser = subparsers.add_parser("verify", help="Verify integrity of a .piuu bundle")
+    verify_parser.add_argument("bundle", help="Path to .piuu bundle file")
+
+    if len(sys.argv) < 2:
+        parser.print_help()
+        sys.exit(0)
+
+    args = parser.parse_args()
+
+    if args.command == "pack":
+        print(f"📦 Packaging '{args.source}' -> '{args.output}'...")
+        res = pack_piuu_bundle(args.source, args.output, name=args.name, version=args.version)
+        print(f"\n✅ Bundle Created Successfully!")
+        print(f"  Path      : {res['bundle_path']}")
+        print(f"  Size      : {res['size_bytes']} bytes")
+        print(f"  SHA-256   : {res['sha256']}")
+
+    elif args.command == "verify":
+        print(f"🔍 Verifying bundle integrity: '{args.bundle}'...")
+        res = verify_piuu_bundle(args.bundle)
+        if res["valid"]:
+            print("✅ Bundle Integrity Verified!")
+            print(f"  ID        : {res['manifest'].get('id')}")
+            print(f"  Name      : {res['manifest'].get('name')}")
+            print(f"  Version   : {res['manifest'].get('version')}")
+            print(f"  Files     : {res['files_count']} archive entries")
+            print(f"  SHA-256   : {res['sha256']}")
+        else:
+            print(f"❌ Verification Failed: {res['error']}", file=sys.stderr)
+            sys.exit(1)
+
+if __name__ == "__main__":
+    main()

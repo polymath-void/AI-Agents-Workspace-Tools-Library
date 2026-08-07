@@ -1,0 +1,57 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from analyzer import analyze_workspace, workspace_summary
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: wc-analyze <command> <directory>")
+        print("  Commands:")
+        print("    complexity : Reports cyclomatic complexity per Python file")
+        print("    metrics    : Detailed LOC, functions, and complexity breakdown")
+        print("    summary    : High-level workspace code and complexity summary")
+        print("  Example: wc-analyze summary .")
+        sys.exit(1)
+        
+    command = sys.argv[1]
+    root_path = sys.argv[2] if len(sys.argv) > 2 else "."
+    
+    if not os.path.exists(root_path):
+        print(f"Error: Path '{root_path}' does not exist.", file=sys.stderr)
+        sys.exit(1)
+
+    if command == "complexity":
+        print(f"Analyzing cyclomatic complexity in {root_path}...")
+        results = analyze_workspace(root_path, mode="complexity")
+        for file, complexity in sorted(results.items()):
+            print(f"  {file}: Complexity {complexity}")
+            
+    elif command == "metrics":
+        print(f"Analyzing code metrics in {root_path}...")
+        results = analyze_workspace(root_path, mode="metrics")
+        for file, m in sorted(results.items()):
+            if isinstance(m, dict):
+                print(f"  {file}: LOC={m.get('loc', 0)}, Functions={m.get('functions', 0)}, Complexity={m.get('complexity', 1)}")
+            else:
+                print(f"  {file}: {m}")
+                
+    elif command == "summary":
+        print(f"Calculating workspace code summary for {root_path}...")
+        summary = workspace_summary(root_path)
+        print("\n--- Workspace Code Summary ---")
+        print(f"  Total Python Files : {summary['total_files']}")
+        print(f"  Total Lines of Code : {summary['total_loc']}")
+        print(f"  Total Functions     : {summary['total_functions']}")
+        print(f"  Total Classes       : {summary['total_classes']}")
+        print(f"  Average Complexity  : {summary['avg_complexity']:.2f}")
+        print(f"  Max Complexity File : {summary['max_complexity_file']} ({summary['max_complexity']})")
+        print("------------------------------")
+    else:
+        print(f"Unknown command: '{command}'. Use 'complexity', 'metrics', or 'summary'.", file=sys.stderr)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,48 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from crash_doctor import analyze_crash_log, parse_stacktrace
+
+def main():
+    parser = argparse.ArgumentParser(description="Stacktrace & Crash Telemetry Analyzer")
+    parser.add_argument("log_file", nargs="?", help="Path to crash log or stacktrace file")
+    parser.add_argument("--json", action="store_true", help="Output diagnosis in JSON format")
+
+    args = parser.parse_args()
+
+    if not args.log_file:
+        # Read from stdin if available
+        if not sys.stdin.isatty():
+            content = sys.stdin.read()
+            res = parse_stacktrace(content)
+        else:
+            parser.print_help()
+            sys.exit(0)
+    else:
+        res = analyze_crash_log(args.log_file)
+
+    if args.json:
+        print(json.dumps(res, indent=2))
+        return
+
+    print("\n🩺 --- Crash & Stacktrace Diagnostic Report ---")
+    print(f"  🔴 Exception Type : \033[1;31m{res.get('exception_type')}\033[0m")
+    if res.get("message"):
+        print(f"  💬 Error Message  : {res.get('message')}")
+    if res.get("root_cause_file"):
+        print(f"  🎯 Offending Line : \033[1;33m{res.get('root_cause_file')}:{res.get('root_cause_line')}\033[0m")
+    
+    frames = res.get("stack_frames", [])
+    if frames:
+        print(f"\n  📜 Top Stack Frames ({len(frames)} total):")
+        for f in frames[:5]:
+            print(f"    - {f['method']} ({f['file']}:{f['line']})")
+    print("------------------------------------------------\n")
+
+if __name__ == "__main__":
+    main()

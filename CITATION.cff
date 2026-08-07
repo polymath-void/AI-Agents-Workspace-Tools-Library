@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use the AI Agents Workspace Tools Library in your research or agentic workflows, please cite it as below."
+authors:
+  - family-names: "Polymath"
+    given-names: "Void"
+    affiliation: "Antigravity Agentic Systems"
+title: "AI Agents Workspace Tools Library: Autonomous Zero-Resource Task Execution and Workspace Context Ecosystem"
+version: 1.0.0
+date-released: 2026-08-07
+url: "https://github.com/polymath-void/AI-Agents-Workspace-Tools-Library"
+keywords:
+  - "ai-agents"
+  - "autonomous-workflows"
+  - "workspace-context"
+  - "agentic-tools"
+  - "termux-android"
+  - "code-refactoring"
+  - "self-healing-builds"
+  - "contract-validation"
+license: "Apache-2.0"

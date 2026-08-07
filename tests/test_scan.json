@@ -1,0 +1,13 @@
+{
+  "name": "plan",
+  "type": "directory",
+  "path": "/data/data/com.termux/files/home/plan",
+  "children": [
+    {
+      "name": "plan_overview.md",
+      "type": "file",
+      "path": "/data/data/com.termux/files/home/plan/plan_overview.md",
+      "size": 4680
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from manager import sanitize_workspace
+
+def main():
+    if len(sys.argv) < 3:
+        print("Usage: wc-manage sanitize <directory> <pattern1> [pattern2 ...] [--dry-run]")
+        print("  Example: wc-manage sanitize . '*.tmp' '*.bak' '__pycache__'")
+        sys.exit(1)
+        
+    command = sys.argv[1]
+    root_path = sys.argv[2]
+    raw_patterns = sys.argv[3:]
+    
+    dry_run = "--dry-run" in raw_patterns or "-d" in raw_patterns
+    patterns = [p for p in raw_patterns if p not in ("--dry-run", "-d")]
+    
+    if not patterns:
+        print("Error: Please provide at least one pattern to sanitize.", file=sys.stderr)
+        sys.exit(1)
+        
+    if command == "sanitize":
+        mode_str = " (DRY-RUN)" if dry_run else ""
+        print(f"Sanitizing {root_path} with patterns: {patterns}{mode_str}...")
+        removed = sanitize_workspace(root_path, patterns, dry_run=dry_run)
+        
+        if not removed:
+            print("No matching files or directories found.")
+        else:
+            action_label = "Would remove" if dry_run else "Removed"
+            for item in removed:
+                print(f"  [{action_label}] {item}")
+            print(f"Sanitization complete: {len(removed)} item(s) processed.")
+    else:
+        print(f"Unknown command: {command}", file=sys.stderr)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()

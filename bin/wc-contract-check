@@ -1,0 +1,52 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from contract_validator import validate_jni_contracts, validate_ipc_contracts
+
+def main():
+    parser = argparse.ArgumentParser(description="Cross-Language ABI & IPC Interface Contract Validator")
+    parser.add_argument("path", nargs="?", default=".", help="Project root directory (default: .)")
+    parser.add_argument("--json", action="store_true", help="Output results in JSON format")
+
+    args = parser.parse_args()
+
+    print(f"\n🌉 --- Validating Cross-Language Contracts in '{args.path}' ---")
+
+    jni_res = validate_jni_contracts(args.path)
+    ipc_res = validate_ipc_contracts(args.path)
+
+    if args.json:
+        print(json.dumps({"jni": jni_res, "ipc": ipc_res}, indent=2))
+        return
+
+    # JNI Report
+    print(f"\n🧩 JNI Kotlin <-> C Exports:")
+    print(f"  • Kotlin 'external fun' found : {len(jni_res['kotlin_external_functions'])}")
+    for f in jni_res['kotlin_external_functions']:
+        print(f"    - {f['name']}({f['params']}) in {os.path.basename(f['file'])}")
+
+    print(f"  • Native C JNI exports found  : {len(jni_res['c_jni_exports'])}")
+    for c in jni_res['c_jni_exports']:
+        print(f"    - Java_..._{c['name']} in {os.path.basename(c['file'])}")
+
+    if jni_res["missing_c_implementations"]:
+        print(f"\n  ⚠️  Missing C Implementations ({len(jni_res['missing_c_implementations'])}):")
+        for m in jni_res["missing_c_implementations"]:
+            print(f"    ❌ {m['name']} declared in {m['file']} but not exported in C")
+    else:
+        print("  ✅ All JNI bindings match exported native symbols.")
+
+    # IPC Report
+    if ipc_res["exposed_apis"]:
+        print(f"\n🖥️ Electron Desktop IPC Bridge:")
+        print(f"  • Preload Exposed APIs ({len(ipc_res['exposed_apis'])}): {', '.join(ipc_res['exposed_apis'])}")
+
+    print("\n-----------------------------------------------------------")
+
+if __name__ == "__main__":
+    main()

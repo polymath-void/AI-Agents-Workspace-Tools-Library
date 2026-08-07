@@ -1,0 +1,35 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import json
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from registry import get_registry_catalog
+
+def main():
+    filter_arg = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("--") else None
+    output_json = "--json" in sys.argv
+
+    catalog = get_registry_catalog(filter_arg)
+
+    if output_json:
+        print(json.dumps(catalog, indent=2))
+        return
+
+    print("\n🛠️  =======================================================")
+    print("   AI AGENT WORKSPACE CONTEXT TOOLS REGISTRY")
+    print("   Zero-Resource Capability Discovery & Quick Recipes")
+    print("=======================================================\n")
+    print(f"Total Registered Tools: {len(catalog)}\n")
+
+    for tool in catalog:
+        print(f"📦 \033[1;32m{tool['name']:<18}\033[0m [\033[1;34m{tool['category']}\033[0m]")
+        print(f"   \033[90m{tool['description']}\033[0m")
+        print(f"   \033[1;33mUsage:\033[0m {tool['usage']}")
+        if tool.get("examples"):
+            print("   \033[1;36mExample:\033[0m " + tool["examples"][0])
+        print()
+
+if __name__ == "__main__":
+    main()

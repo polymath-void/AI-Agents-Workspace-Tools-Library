@@ -1,0 +1,79 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from agent_memory import AgentMemoryStore
+
+def main():
+    parser = argparse.ArgumentParser(description="Persistent Agent Memory & Snapshot Checkpoint Store")
+    subparsers = parser.add_subparsers(dest="command", help="Command to execute")
+
+    # Set
+    set_parser = subparsers.add_parser("set", help="Store key-value pair")
+    set_parser.add_argument("key", help="Memory key")
+    set_parser.add_argument("value", help="Value string or JSON")
+    set_parser.add_argument("-c", "--category", default="general", help="Category tag")
+
+    # Get
+    get_parser = subparsers.add_parser("get", help="Retrieve value by key")
+    get_parser.add_argument("key", help="Memory key")
+
+    # List
+    list_parser = subparsers.add_parser("list", help="List stored memory keys")
+    list_parser.add_argument("-c", "--category", help="Filter by category")
+
+    # Snapshot
+    snap_parser = subparsers.add_parser("snapshot", help="Create directory backup snapshot")
+    snap_parser.add_argument("dir", nargs="?", default=".", help="Target directory (default: .)")
+    snap_parser.add_argument("-t", "--tag", default="manual", help="Snapshot tag")
+
+    # List Snapshots
+    subparsers.add_parser("snapshots", help="List created snapshots")
+
+    if len(sys.argv) < 2:
+        parser.print_help()
+        sys.exit(0)
+
+    args = parser.parse_args()
+    store = AgentMemoryStore()
+
+    if args.command == "set":
+        store.set(args.key, args.value, category=args.category)
+        print(f"🧠 Stored '{args.key}' in category [{args.category}]")
+
+    elif args.command == "get":
+        val = store.get(args.key)
+        if val is None:
+            print(f"Key '{args.key}' not found.", file=sys.stderr)
+            sys.exit(1)
+        if isinstance(val, (dict, list)):
+            print(json.dumps(val, indent=2))
+        else:
+            print(val)
+
+    elif args.command == "list":
+        keys = store.list_keys(category=args.category)
+        print(f"\n🧠 --- Stored Agent Memories ({len(keys)}) ---")
+        for k in keys:
+            print(f"  🔑 {k['key']:<25} [{k['category']}] ({k['updated_at']})")
+        print("---------------------------------------------")
+
+    elif args.command == "snapshot":
+        print(f"📸 Creating workspace snapshot of '{args.dir}' [tag={args.tag}]...")
+        res = store.create_snapshot(args.dir, tag=args.tag)
+        print(f"✅ Snapshot created: {res['snapshot_id']} -> {res['backup_path']}")
+
+    elif args.command == "snapshots":
+        snaps = store.list_snapshots()
+        print(f"\n📸 --- Workspace Snapshots ({len(snaps)}) ---")
+        for s in snaps:
+            print(f"  📦 {s['snapshot_id']} [{s['tag']}] ({s['created_at']})")
+            print(f"     Target: {s['target_dir']}")
+        print("---------------------------------------------")
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,37 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import json
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from scanner import scan_directory, save_metadata
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: wc-scan <directory> [output_json]")
+        print("  <directory>   : Directory path to scan")
+        print("  [output_json] : Optional path to save JSON metadata (defaults to stdout)")
+        sys.exit(1)
+        
+    root_path = sys.argv[1]
+    output_path = sys.argv[2] if len(sys.argv) > 2 else None
+    
+    if not os.path.exists(root_path):
+        print(f"Error: Path '{root_path}' does not exist.", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Scanning workspace: {root_path}...")
+    tree = scan_directory(root_path)
+    if not tree:
+        print("Scan returned no results or path is invalid.", file=sys.stderr)
+        sys.exit(1)
+
+    if output_path:
+        save_metadata(tree, output_path)
+        print(f"Metadata saved successfully to {output_path}")
+    else:
+        print(json.dumps(tree, indent=2))
+
+if __name__ == "__main__":
+    main()

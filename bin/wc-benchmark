@@ -1,0 +1,35 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from benchmark import run_benchmark
+
+def main():
+    parser = argparse.ArgumentParser(description="Performance and latency benchmark tool")
+    parser.add_argument("cmd", nargs="+", help="Command and arguments to benchmark")
+    parser.add_argument("-n", "--iterations", type=int, default=3, help="Number of benchmark runs (default: 3)")
+    parser.add_argument("-t", "--threshold", type=float, default=5.0, help="Maximum allowed seconds threshold")
+
+    if len(sys.argv) < 2:
+        parser.print_help()
+        sys.exit(0)
+
+    args = parser.parse_args()
+
+    print(f"⏱️  Benchmarking: '{' '.join(args.cmd)}' ({args.iterations} runs)...")
+    res = run_benchmark(args.cmd, iterations=args.iterations, max_allowed_seconds=args.threshold)
+
+    status_icon = "✅ PASS" if (res["success"] and res["meets_threshold"]) else "❌ FAIL"
+
+    print(f"\n📊 --- Benchmark Scorecard [{status_icon}] ---")
+    print(f"  Command    : {res['command']}")
+    print(f"  Average    : {res['avg_seconds']}s")
+    print(f"  Min / Max  : {res['min_seconds']}s / {res['max_seconds']}s")
+    print(f"  Threshold  : {args.threshold}s ({'Within budget' if res['meets_threshold'] else 'Exceeded limit'})")
+    print("---------------------------------------------")
+
+if __name__ == "__main__":
+    main()

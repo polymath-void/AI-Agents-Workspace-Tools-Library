@@ -1,0 +1,65 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from code_modder import batch_code_replace, inject_import
+
+def main():
+    parser = argparse.ArgumentParser(description="Multi-file atomic code modifier and refactoring tool")
+    subparsers = parser.add_subparsers(dest="command", help="Subcommand to execute")
+
+    # Replace subcommand
+    replace_parser = subparsers.add_parser("replace", help="Replace string/pattern across files")
+    replace_parser.add_argument("target", help="Target string or pattern to find")
+    replace_parser.add_argument("replacement", help="Replacement string")
+    replace_parser.add_argument("path", nargs="?", default=".", help="Directory to search (default: .)")
+    replace_parser.add_argument("-e", "--ext", help="Comma-separated extensions (e.g. kt,py,xml)")
+    replace_parser.add_argument("-r", "--regex", action="store_true", help="Treat target as regex")
+    replace_parser.add_argument("-d", "--dry-run", action="store_true", help="Preview modifications without writing")
+
+    # Import subcommand
+    import_parser = subparsers.add_parser("import", help="Inject import statement into code files")
+    import_parser.add_argument("statement", help="Import statement (e.g. 'import com.piuu.launcher.utils.*')")
+    import_parser.add_argument("path", nargs="?", default=".", help="Directory to search (default: .)")
+    import_parser.add_argument("-e", "--ext", default="kt", help="File extension (default: kt)")
+    import_parser.add_argument("-d", "--dry-run", action="store_true", help="Preview injections without writing")
+
+    if len(sys.argv) < 2:
+        parser.print_help()
+        sys.exit(0)
+
+    args = parser.parse_args()
+
+    if args.command == "replace":
+        exts = args.ext.split(",") if args.ext else None
+        print(f"Modifying code in '{args.path}' [dry_run={args.dry_run}]...")
+        res = batch_code_replace(
+            root_path=args.path,
+            target_pattern=args.target,
+            replacement=args.replacement,
+            extensions=exts,
+            is_regex=args.regex,
+            dry_run=args.dry_run
+        )
+
+        mode_str = "(DRY-RUN) Would modify" if args.dry_run else "Modified"
+        print(f"\n✨ {mode_str} {res['total_occurrences']} occurrence(s) across {len(res['modified_files'])} file(s):")
+        for f in res["modified_files"]:
+            print(f"  - {f['file']} ({f['occurrences']} replacements)")
+
+        if res.get("backup_dir"):
+            print(f"\n🔒 Backup created at: {res['backup_dir']}")
+
+    elif args.command == "import":
+        print(f"Injecting import '{args.statement}' into *.{args.ext} in '{args.path}'...")
+        injected = inject_import(args.path, args.statement, extension=args.ext, dry_run=args.dry_run)
+        mode_str = "(DRY-RUN) Would inject into" if args.dry_run else "Injected into"
+        print(f"\n✨ {mode_str} {len(injected)} file(s):")
+        for f in injected:
+            print(f"  - {f}")
+
+if __name__ == "__main__":
+    main()

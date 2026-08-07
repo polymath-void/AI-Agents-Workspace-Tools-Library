@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-agents-workspace-tools"
+version = "1.0.0"
+description = "Autonomous task execution, atomic code refactoring, self-healing build diagnosis, and zero-resource workspace context tools for AI agents."
+readme = "README.md"
+authors = [{ name = "Antigravity Agentic Systems", email = "agents@antigravity.ai" }]
+license = { text = "Apache-2.0" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Android",
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence"
+]
+keywords = [
+    "ai-agents",
+    "autonomous-workflows",
+    "workspace-context",
+    "agentic-tools",
+    "termux",
+    "code-refactoring",
+    "self-healing"
+]
+requires-python = ">=3.9"
+
+[project.scripts]
+wc-task-exec = "bin.wc_task_exec:main"
+wc-code-mod = "bin.wc_code_mod:main"
+wc-build-doctor = "bin.wc_build_doctor:main"
+wc-bundle-packer = "bin.wc_bundle_packer:main"
+wc-benchmark = "bin.wc_benchmark:main"
+wc-agent-memory = "bin.wc_agent_memory:main"
+wc-contract-check = "bin.wc_contract_check:main"
+wc-scaffold = "bin.wc_scaffold:main"
+wc-crash-doctor = "bin.wc_crash_doctor:main"
+wc-tool-registry = "bin.wc_tool_registry:main"
+wc-search = "bin.wc_search:main"
+wc-deps = "bin.wc_deps:main"
+wc-git-sync = "bin.wc_git_sync:main"
+wc-termux-env = "bin.wc_termux_env:main"
+wc-scan = "bin.wc_scan:main"
+wc-analyze = "bin.wc_analyze:main"
+wc-manage = "bin.wc_manage:main"
+wc-monitor = "bin.wc_monitor:main"

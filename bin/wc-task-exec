@@ -1,0 +1,43 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import json
+import argparse
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from task_executor import execute_autonomous_task
+
+def main():
+    parser = argparse.ArgumentParser(description="End-to-end task validation and receipt executor")
+    parser.add_argument("title", nargs="?", default="General Workspace Audit", help="Task title or description")
+    parser.add_argument("path", nargs="?", default=".", help="Target workspace path (default: .)")
+    parser.add_argument("--no-tests", action="store_true", help="Skip unit test phase")
+    parser.add_argument("--json", action="store_true", help="Output full JSON receipt")
+
+    args = parser.parse_args()
+
+    print(f"🚀 Executing end-to-end task validation: '{args.title}'...\n")
+    receipt = execute_autonomous_task(args.title, target_dir=args.path, run_tests=not args.no_tests)
+
+    if args.json:
+        print(json.dumps(receipt, indent=2))
+        return
+
+    status_icon = "✅ SUCCESS" if receipt["success"] else "❌ FAILED"
+    print(f"=======================================================")
+    print(f"   TASK EXECUTION RECEIPT [{status_icon}]")
+    print(f"=======================================================")
+    print(f"  Title     : {receipt['task_title']}")
+    print(f"  Target    : {receipt['target_dir']}")
+    print(f"  Duration  : {receipt['elapsed_seconds']}s")
+    print(f"  Timestamp : {receipt['timestamp']}")
+    print("-------------------------------------------------------")
+    print("  Phases Breakdown:")
+    for phase_name, pdata in receipt["phases"].items():
+        icon = "🟢" if pdata.get("status") == "PASS" else ("🟡" if pdata.get("status") == "WARNING" else "🔴")
+        print(f"    {icon} {phase_name.upper():<14} : {pdata.get('status')}")
+    print("=======================================================\n")
+
+if __name__ == "__main__":
+    main()
