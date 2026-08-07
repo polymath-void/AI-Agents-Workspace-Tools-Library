@@ -1,0 +1,49 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from agent_loop import run_agent_loop
+
+def main():
+    parser = argparse.ArgumentParser(description="Autonomous Self-Healing Agent Execution Loop Engine")
+    parser.add_argument("-d", "--dir", default=".", help="Working directory (default: .)")
+    parser.add_argument("-t", "--tag", default="task", help="Snapshot checkpoint tag")
+    parser.add_argument("-r", "--retries", type=int, default=1, help="Max self-healing retry attempts (default: 1)")
+    parser.add_argument("--json", action="store_true", help="Output JSON receipt")
+    parser.add_argument("cmd", nargs="*", help="Command and arguments to execute within agent loop")
+
+    args, remaining = parser.parse_known_args()
+    full_cmd = args.cmd + remaining
+
+    if not full_cmd:
+        parser.print_help()
+        sys.exit(0)
+
+    print(f"🔄 Entering Autonomous Agent Loop for: '{' '.join(full_cmd)}'...\n")
+    res = run_agent_loop(full_cmd, target_dir=args.dir, tag=args.tag, max_retries=args.retries)
+
+    if args.json:
+        print(json.dumps(res, indent=2))
+        return
+
+    icon = "✅" if res["success"] else "❌"
+    print(f"=======================================================")
+    print(f"   AGENT LOOP EXECUTION RECEIPT [{icon} {res['status']}]")
+    print(f"=======================================================")
+    print(f"  Command    : {res['task']}")
+    print(f"  Directory  : {res['target_dir']}")
+    print(f"  Probe      : {res['probe']}")
+    print(f"  Snapshot   : {res['snapshot_id']}")
+    print(f"  Duration   : {res['elapsed_seconds']}s")
+    if res["healing_attempts"]:
+        print(f"  Healed     : {len(res['healing_attempts'])} healing attempt(s) triggered")
+        for h in res["healing_attempts"]:
+            print(f"    - Attempt #{h['attempt']}: Fixes: {h['fixes']}")
+    print("=======================================================\n")
+
+if __name__ == "__main__":
+    main()

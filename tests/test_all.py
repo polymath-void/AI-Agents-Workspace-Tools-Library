@@ -21,6 +21,9 @@ from lib.agent_memory import AgentMemoryStore
 from lib.contract_validator import validate_jni_contracts
 from lib.scaffolder import scaffold_compose_component, scaffold_repository
 from lib.crash_doctor import parse_stacktrace
+from lib.agent_probe import probe_agent_environment
+from lib.error_healer import auto_heal_error, ensure_path_configured
+from lib.agent_loop import run_agent_loop
 from wie.storage.memory import WIEMemory
 
 class TestWorkspaceTools(unittest.TestCase):
@@ -133,6 +136,20 @@ class TestWorkspaceTools(unittest.TestCase):
         self.assertEqual(diag["root_cause_file"], "MainActivity.kt")
         self.assertEqual(diag["root_cause_line"], 42)
 
+    def test_agent_probe(self):
+        report = probe_agent_environment()
+        self.assertIn("status", report)
+        self.assertIn("checks", report)
+
+    def test_error_healer(self):
+        fixes = auto_heal_error("sqlite3.OperationalError: database is locked")
+        self.assertIsInstance(fixes, list)
+
+    def test_agent_loop(self):
+        res = run_agent_loop(["python3", "-c", "print('hello loop')"], target_dir=str(self.sandbox))
+        self.assertTrue(res["success"])
+        self.assertEqual(res["status"], "COMPLETED")
+
     def test_env_checker(self):
         telem = get_system_telemetry()
         self.assertIn("python_version", telem)
@@ -142,7 +159,7 @@ class TestWorkspaceTools(unittest.TestCase):
 
     def test_registry(self):
         catalog = get_registry_catalog()
-        self.assertGreaterEqual(len(catalog), 18)
+        self.assertGreaterEqual(len(catalog), 21)
 
     def test_monitor(self):
         monitor = WorkspaceMonitor()
@@ -153,7 +170,8 @@ class TestWorkspaceTools(unittest.TestCase):
         db_file = self.sandbox / 'storage' / 'wie_test.db'
         memory = WIEMemory(db_file)
         memory.log_event("CREATED", str(self.sandbox / 'test_file.py'))
-        self.assertTrue(db_file.exists())
+        recent = memory.get_recent_events(limit=5)
+        self.assertGreaterEqual(len(recent), 1)
 
 if __name__ == '__main__':
     unittest.main()

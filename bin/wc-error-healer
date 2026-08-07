@@ -1,0 +1,45 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from error_healer import auto_heal_error, ensure_path_configured
+
+def main():
+    parser = argparse.ArgumentParser(description="Deterministic Agent Self-Healing Error Doctor")
+    parser.add_argument("error", nargs="?", help="Error output or message string to heal")
+    parser.add_argument("--fix-path", action="store_true", help="Automatically configure PATH in ~/.bashrc and ~/.zshrc")
+
+    args = parser.parse_args()
+
+    if args.fix_path:
+        modified = ensure_path_configured()
+        if modified:
+            print(f"✅ Added Tools Library to PATH in: {', '.join(modified)}")
+        else:
+            print("ℹ️  PATH is already configured in shell rc files.")
+        return
+
+    error_text = args.error
+    if not error_text and not sys.stdin.isatty():
+        error_text = sys.stdin.read()
+
+    if not error_text:
+        parser.print_help()
+        sys.exit(0)
+
+    print(f"\n🩺 Analyzing error for automatic healing patterns...")
+    fixes = auto_heal_error(error_text)
+
+    if fixes:
+        print("\n✨ Self-Healing Fixes Applied Successfully:")
+        for f in fixes:
+            print(f"  ✅ {f}")
+    else:
+        print("ℹ️  No automated healing routine matched this error signature.")
+    print("")
+
+if __name__ == "__main__":
+    main()

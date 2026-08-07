@@ -1,0 +1,37 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+import argparse
+import json
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from agent_probe import probe_agent_environment
+
+def main():
+    parser = argparse.ArgumentParser(description="Internal Agent Environment & Loop Diagnostic Probe")
+    parser.add_argument("--json", action="store_true", help="Output JSON diagnosis")
+
+    args = parser.parse_args()
+    report = probe_agent_environment()
+
+    if args.json:
+        print(json.dumps(report, indent=2))
+        return
+
+    status_icon = "🟢 HEALTHY" if report["status"] == "HEALTHY" else ("🟡 WARNING" if report["status"] == "WARNING" else "🔴 DEGRADED")
+    print(f"\n=======================================================")
+    print(f"   INTERNAL AGENT HEALTH PROBE [{status_icon}]")
+    print(f"=======================================================")
+    for k, v in report["checks"].items():
+        icon = "✅" if v.get("ok") else "⚠️ "
+        print(f"  {icon} {k:<20} : {v.get('detail', 'N/A')}")
+    
+    if report["recommendations"]:
+        print("\n💡 Actionable Agent Fixes:")
+        for r in report["recommendations"]:
+            print(f"  - {r}")
+    print("=======================================================\n")
+
+if __name__ == "__main__":
+    main()

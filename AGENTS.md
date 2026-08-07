@@ -9,25 +9,68 @@
 
 ## 🧭 Executive Summary for Autonomous Agents
 
-This document provides a cognitive taxonomy and decision matrix for AI agents operating within software workspaces. Rather than executing unbounded shell commands or consuming tokens on broad file scans, agents **must classify their operational intent** into one of the **7 Core Functional Categories** below and select the specialized tool that zero-outs token and execution overhead.
+This document provides a cognitive taxonomy and decision matrix for AI agents operating within software workspaces. Rather than executing unbounded shell commands or consuming tokens on broad file scans, agents **must classify their operational intent** into one of the **8 Core Functional Categories** below and select the specialized tool that zero-outs token and execution overhead.
 
 ---
 
 ## 🗺️ Functional Category Taxonomy
 
 ```
-                              ┌─────────────────────────────────────────────────────────┐
-                              │            AGENT TASK / PROBLEM STATEMENT               │
-                              └────────────────────────────┬────────────────────────────┘
-                                                           │
-        ┌───────────────────┬───────────────────┬──────────┴────────┬───────────────────┬───────────────────┐
-        │                   │                   │                   │                   │                   │
- ┌──────▼──────┐     ┌──────▼──────┐     ┌──────▼──────┐     ┌──────▼──────┐     ┌──────▼──────┐     ┌──────▼──────┐
- │ Category 1  │     │ Category 2  │     │ Category 3  │     │ Category 4  │     │ Category 5  │     │ Category 6  │
- │ Execution & │     │ Code Mod &  │     │ Contract &  │     │ Build &     │     │ Memory &    │     │ Discovery & │
- │ Pipeline    │     │ Scaffolding │     │ Interface   │     │ Diagnostics │     │ State Store │     │ Inspection  │
- └─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘     └─────────────┘
+                                  ┌─────────────────────────────────────────────────────────┐
+                                  │            AGENT TASK / PROBLEM STATEMENT               │
+                                  └────────────────────────────┬────────────────────────────┘
+                                                               │
+        ┌───────────────────┬───────────────────┬──────────────┼──────────────┬───────────────────┬───────────────────┐
+        │                   │                   │              │              │                   │                   │
+ ┌──────▼──────┐     ┌──────▼──────┐     ┌──────▼──────┐┌──────▼──────┐┌──────▼──────┐     ┌──────▼──────┐     ┌──────▼──────┐
+ │ Category 0  │     │ Category 1  │     │ Category 2  ││ Category 3  ││ Category 4  │     │ Category 5  │     │ Category 6  │
+ │ Agent Loop  │     │ Task Pipeline│    │ Code Mod &  ││ Contract &  ││ Build &     │     │ Memory &    │     │ Discovery & │
+ │ & Autonomy  │     │ & Execution │     │ Scaffolding ││ Packaging   ││ Diagnostics │     │ State Store │     │ Inspection  │
+ └─────────────┘     └─────────────┘     └─────────────┘└─────────────┘└─────────────┘     └─────────────┘     └─────────────┘
 ```
+
+---
+
+## 📂 Category 0: Agent Self-Healing Loop & Autonomy
+
+### Purpose & Trigger Condition
+Use this category to run agent commands inside a protected wrapper with pre-flight environment checks, automatic rollback snapshot checkpoints, and deterministic error healing.
+
+### Tools & Cited Use Cases
+
+#### 1. `wc-agent-loop`
+* **Citation**: § 0.1 *Autonomous Self-Healing Loop Engine with Checkpoint Rollback*
+* **Trigger Condition**: When executing high-risk commands (e.g. Git push, build runs, multi-file refactoring).
+* **Operational Recipe**:
+  ```bash
+  # Execute task inside self-healing loop with rollback safety
+  bin/wc-agent-loop git push origin main
+  bin/wc-agent-loop ./bin/wc-task-exec "Verify Feature" .
+  ```
+
+#### 2. `wc-agent-probe`
+* **Citation**: § 0.2 *Internal Agent Environment Diagnostic Probe*
+* **Trigger Condition**: When troubleshooting agent execution failures, missing PATH binaries, or Git 403 errors.
+* **Operational Recipe**:
+  ```bash
+  # Audit agent runtime health
+  bin/wc-agent-probe
+
+  # Output structured JSON for agent processing
+  bin/wc-agent-probe --json
+  ```
+
+#### 3. `wc-error-healer`
+* **Citation**: § 0.3 *Deterministic Self-Healing Error Remediation*
+* **Trigger Condition**: When commands fail with Git 403 permission errors, missing Termux shebangs, or SQLite WAL locks.
+* **Operational Recipe**:
+  ```bash
+  # Auto-configure tools in shell PATH
+  bin/wc-error-healer --fix-path
+
+  # Auto-remediate a captured error message
+  bin/wc-error-healer "Permission to polymath-void/repo.git denied to user"
+  ```
 
 ---
 
@@ -45,13 +88,7 @@ Use this category when the agent is assigned a multi-step task and needs to run 
   ```bash
   # Execute full multi-phase verification pipeline
   bin/wc-task-exec "Verify Launcher Refactoring" /path/to/project
-  
-  # Output machine-readable JSON for agent consumption
-  bin/wc-task-exec "Pre-release Health Check" . --json
   ```
-* **Agent Decision Output**:
-  - `status == PASS`: Proceed to commit or deliver final response.
-  - `status == FAIL`: Check the failing phase (e.g. `unit_tests`) and invoke Category 4 diagnostics.
 
 #### 2. `wc-benchmark`
 * **Citation**: § 1.2 *Latency-Constrained Mobile Process Execution*
@@ -275,6 +312,7 @@ Use this category for hardware telemetry on mobile/Termux environments and clean
 
 | Operational Goal | Recommended Category | Primary Tool | Fallback / Complementary Tool |
 | :--- | :--- | :--- | :--- |
+| **Run Command with Auto-Heal**| Cat 0: Agent Autonomy | `wc-agent-loop` | `wc-agent-probe`, `wc-error-healer` |
 | **Verify Multi-Step Task** | Cat 1: Pipeline | `wc-task-exec` | `wc-benchmark` |
 | **Refactor Code Across Files**| Cat 2: Code Mod | `wc-code-mod` | `wc-scaffold` |
 | **Verify JNI / IPC Contracts**| Cat 3: Contracts | `wc-contract-check` | `wc-bundle-packer` |
@@ -297,6 +335,6 @@ To reference this categorization and tool operational schema:
   year = {2026},
   volume = {1},
   number = {4},
-  pages = {1--18}
+  pages = {1--21}
 }
 ```
