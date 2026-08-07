@@ -108,16 +108,24 @@ When an agent needs to perform an action, use this instant lookup matrix:
 | Convert JSON $\leftrightarrow$ CSV/TSV | `wc-json-csv` | `categories/01_json_data/` | [`docs/tools/wc-json-csv.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-json-csv.md) |
 | Stream / filter NDJSON/JSONL | `wc-json-ndjson` | `categories/01_json_data/` | [`docs/tools/wc-json-ndjson.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-json-ndjson.md) |
 | Auto infer JSON schema | `wc-json-schema` | `categories/01_json_data/` | [`docs/tools/wc-json-schema.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-json-schema.md) |
+| Analyze AGY session & tokens | `wc-agy-session` | `categories/01_json_data/` | [`docs/tools/wc-agy-session.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-agy-session.md) |
 | Evaluate subagent need | `wc-swarm-dispatch` | `categories/02_workflow_swarm/` | [`docs/tools/wc-swarm-dispatch.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-swarm-dispatch.md) |
 | Isolate context between agents | `wc-workflow-context` | `categories/02_workflow_swarm/` | [`docs/tools/wc-workflow-context.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-workflow-context.md) |
 | Acquire distributed file mutex | `wc-resource-lock` | `categories/02_workflow_swarm/` | [`docs/tools/wc-resource-lock.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-resource-lock.md) |
 | Async Pub/Sub message bus | `wc-agent-channel` | `categories/02_workflow_swarm/` | [`docs/tools/wc-agent-channel.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-agent-channel.md) |
 | Execute multi-task DAG | `wc-task-dag` | `categories/02_workflow_swarm/` | [`docs/tools/wc-task-dag.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-task-dag.md) |
+| Lint & package `.skill` bundle | `wc-skill-pack` | `categories/02_workflow_swarm/` | [`docs/tools/wc-skill-pack.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-skill-pack.md) |
+| Translate Hermes $\leftrightarrow$ AGY | `wc-hermes-adapter` | `categories/02_workflow_swarm/` | [`docs/tools/wc-hermes-adapter.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-hermes-adapter.md) |
 | Batch code replace & import | `wc-code-mod` | `categories/03_code_refactoring/` | [`docs/tools/wc-code-mod.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-code-mod.md) |
 | Semantic object & symbol diff | `wc-object-diff` | `categories/03_code_refactoring/` | [`docs/tools/wc-object-diff.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-object-diff.md) |
 | JNI Kotlin $\leftrightarrow$ C verifier | `wc-contract-check` | `categories/03_code_refactoring/` | [`docs/tools/wc-contract-check.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-contract-check.md) |
 | Scaffold Compose UI / Repo | `wc-scaffold` | `categories/03_code_refactoring/` | [`docs/tools/wc-scaffold.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-scaffold.md) |
+| Audit Electron & simulate | `wc-electron-runner` | `categories/03_code_refactoring/` | [`docs/tools/wc-electron-runner.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-electron-runner.md) |
 | Repair Gradle & 16KB alignment | `wc-build-doctor` | `categories/04_system_runtime/` | [`docs/tools/wc-build-doctor.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-build-doctor.md) |
+| Check ELF 16KB alignment | `wc-elf-align` | `categories/04_system_runtime/` | [`docs/tools/wc-elf-align.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-elf-align.md) |
+| Manage wireless ADB bridge | `wc-adb-bridge` | `categories/04_system_runtime/` | [`docs/tools/wc-adb-bridge.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-adb-bridge.md) |
+| Audit GKI kernel defconfig | `wc-kernel-builder` | `categories/04_system_runtime/` | [`docs/tools/wc-kernel-builder.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-kernel-builder.md) |
+| Manage cloud snapshot backups | `wc-cloud-backup` | `categories/04_system_runtime/` | [`docs/tools/wc-cloud-backup.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-cloud-backup.md) |
 | Diagnose logcat crash traces | `wc-crash-doctor` | `categories/04_system_runtime/` | [`docs/tools/wc-crash-doctor.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-crash-doctor.md) |
 | Compile .piuu extension archive | `wc-bundle-packer` | `categories/04_system_runtime/` | [`docs/tools/wc-bundle-packer.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-bundle-packer.md) |
 | Check RAM, CPU & compilers | `wc-termux-env` | `categories/04_system_runtime/` | [`docs/tools/wc-termux-env.md`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/docs/tools/wc-termux-env.md) |
@@ -125,7 +133,29 @@ When an agent needs to perform an action, use this instant lookup matrix:
 
 ---
 
-## 📜 5. Citation & Academic Reference
+## ⚡ 5. Autonomous Direct Tool Use, Self-Healing & Git Push Protocol
+
+Agents operating in this ecosystem must adhere to the following **System Instruction**:
+
+1. **Direct Tool Execution**:
+   - Whenever any developer task, JSON transformation, AST inspection, swarm communication, build check, or snapshot is required, **always directly execute the corresponding tool in `bin/` or `categories/`**.
+2. **Immediate Self-Healing & Fixes**:
+   - If any tool encounters an error, bug, failure, or platform incompatibility during execution:
+     - Diagnose and repair the code immediately.
+     - Verify with `tests/test_all.py` or CLI execution.
+     - **Immediately stage, commit, and push the fix to GitHub (`git push origin main`)**.
+3. **Autonomous Tool Creation & Expansion**:
+   - If a required capability is not yet available in the library:
+     - Create the core module in `lib/<category>/`.
+     - Create the CLI executable in `bin/wc-<tool-name>`.
+     - Symlink into `categories/<category_dir>/`.
+     - Register in `lib/registry.py` and write full docs in `docs/tools/wc-<tool-name>.md`.
+     - Add regression unit test in `tests/test_all.py`.
+     - Verify, use the tool for the active task, and **commit & push to GitHub**.
+
+---
+
+## 📜 6. Citation & Academic Reference
 When referencing this repository in technical papers, agent skill definitions, or benchmarks:
 
 ```bibtex
@@ -136,3 +166,4 @@ When referencing this repository in technical papers, agent skill definitions, o
   year = {2026}
 }
 ```
+
