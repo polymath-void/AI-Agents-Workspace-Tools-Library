@@ -1,0 +1,57 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import json
+import argparse
+from pathlib import Path
+
+# Add project root to sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from lib.hermes_adapter import HermesAdapter
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Multi-agent protocol translator bridging Hermes JSON sessions, Antigravity AGY JSONL logs & Gemini CLI."
+    )
+    subparsers = parser.add_subparsers(dest="command")
+
+    # to-hermes
+    p_th = subparsers.add_parser("to-hermes", help="Convert AGY transcript.jsonl to Hermes JSON format")
+    p_th.add_argument("input", type=Path, help="Path to AGY transcript JSONL file")
+
+    # to-agy
+    p_ta = subparsers.add_parser("to-agy", help="Convert Hermes JSON session to AGY JSONL format")
+    p_ta.add_argument("input", type=Path, help="Path to Hermes JSON file")
+
+    # inspect
+    p_insp = subparsers.add_parser("inspect", help="Inspect session message count and tool invocation metrics")
+    p_insp.add_argument("input", type=Path, help="Path to session JSON or JSONL file")
+
+    args = parser.parse_args()
+
+    if args.command == "to-hermes":
+        raw = args.input.read_text(encoding="utf-8", errors="replace")
+        steps = HermesAdapter.parse_agy_jsonl(raw)
+        res = HermesAdapter.agy_to_hermes(steps)
+        print(json.dumps(res, indent=2))
+
+    elif args.command == "to-agy":
+        raw = args.input.read_text(encoding="utf-8", errors="replace")
+        session_data = json.loads(raw)
+        steps = HermesAdapter.hermes_to_agy(session_data)
+        for s in steps:
+            print(json.dumps(s))
+
+    elif args.command == "inspect":
+        raw = args.input.read_text(encoding="utf-8", errors="replace")
+        try:
+            session_data = json.loads(raw)
+        except json.JSONDecodeError:
+            session_data = HermesAdapter.parse_agy_jsonl(raw)
+        res = HermesAdapter.inspect_session(session_data)
+        print(json.dumps(res, indent=2))
+
+    else:
+        parser.print_help()
+
+if __name__ == "__main__":
+    main()

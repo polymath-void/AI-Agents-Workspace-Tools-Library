@@ -1,7 +1,7 @@
 # AI Agents Workspace Tools Library ⚡
 
-[![Build & Test Status](https://img.shields.io/badge/tests-33%2F33%20passing-brightgreen.svg)](#-test-suite--verification)
-[![Tools Count](https://img.shields.io/badge/tools-41%20tools-blue.svg)](#-complete-41-tool-catalog)
+[![Build & Test Status](https://img.shields.io/badge/tests-41%2F41%20passing-brightgreen.svg)](#-test-suite--verification)
+[![Tools Count](https://img.shields.io/badge/tools-49%20tools-blue.svg)](#-complete-49-tool-catalog)
 [![Python Version](https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.14-blue.svg)](https://python.org)
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Android%20Termux-orange.svg)](#-system-compatibility)
 [![Zero Overhead](https://img.shields.io/badge/overhead-zero--resource-purple.svg)](#-zero-resource-philosophy)
@@ -16,22 +16,22 @@ Tools are cleanly partitioned into 4 search-friendly category directories under 
 
 ```
 AI-Agents-Workspace-Tools-Library/
-├── bin/                                # 41 CLI tools
+├── bin/                                # 49 CLI tools
 ├── categories/
-│   ├── 01_json_data/                   # 12 JSON & tabular transformation tools
-│   ├── 02_workflow_swarm/              # 10 Swarm orchestration & DAG tools
-│   ├── 03_code_refactoring/            # 6 AST analysis & scaffolding tools
-│   └── 04_system_runtime/              # 13 System, build & diagnostic tools
+│   ├── 01_json_data/                   # 13 JSON & tabular transformation tools
+│   ├── 02_workflow_swarm/              # 12 Swarm orchestration & DAG tools
+│   ├── 03_code_refactoring/            # 7 AST analysis & scaffolding tools
+│   └── 04_system_runtime/              # 17 System, build & diagnostic tools
 └── lib/
-    ├── json/                           # JSON suite & prompt processors
-    ├── workflow/                       # Swarm dispatcher & context managers
-    ├── py/                             # AST analyzers & scaffolders
-    └── system/                         # Diagnostics, packagers & verifiers
+    ├── json/                           # JSON suite, schema generators & prompt processors
+    ├── workflow/                       # Swarm dispatcher, context managers & skill packager
+    ├── py/                             # AST analyzers, scaffolders & electron simulator
+    └── system/                         # Cloud backups, ELF alignment, ADB bridge & kernel builder
 ```
 
 ---
 
-## 🛠️ Complete 41-Tool Categorized Catalog
+## 🛠️ Complete 49-Tool Categorized Catalog
 
 ### 📊 Category 01: JSON & Data Processing Suite (`categories/01_json_data/`)
 * **`wc-json-prompt`**: Unformatted prompt JSON extractor & heuristic syntax auto-repairer.
@@ -46,6 +46,7 @@ AI-Agents-Workspace-Tools-Library/
 * **`wc-json-stats`**: Structural profiler computing depth, key count, byte volume, and token metrics.
 * **`wc-json-filter`**: Predicate engine for querying collections (`==`, `!=`, `>`, `<`, `contains`, `startswith`).
 * **`wc-json-mask`**: Security redactor that automatically masks API keys, tokens, and passwords.
+* **`wc-agy-session`**: Antigravity AGY session transcript analyzer, token density counter & timeline exporter.
 
 ### 🐝 Category 02: Multi-Tasking & Swarm Workflows (`categories/02_workflow_swarm/`)
 * **`wc-swarm-dispatch`**: Subagent necessity evaluator, dispatch spec generator & outcome aggregator.
@@ -58,6 +59,8 @@ AI-Agents-Workspace-Tools-Library/
 * **`wc-agent-loop`**: Self-healing execution loop with pre-flight probes and rollback snapshots.
 * **`wc-agent-probe`**: Internal diagnostic probe auditing PATH, auth, RAM, and Python engines.
 * **`wc-error-healer`**: Deterministic error doctor for Git 403s, missing shebangs, and database locks.
+* **`wc-skill-pack`**: SKILL.md linter, YAML frontmatter validator, dependency checker & `.skill` bundle packager.
+* **`wc-hermes-adapter`**: Protocol bridge translating between Hermes JSON sessions and Antigravity AGY logs.
 
 ### 💻 Category 03: Code Refactoring & AST Analysis (`categories/03_code_refactoring/`)
 * **`wc-code-mod`**: Multi-file batch code modifier, regex replacer & import injector with rollback.
@@ -66,6 +69,7 @@ AI-Agents-Workspace-Tools-Library/
 * **`wc-contract-check`**: Cross-language contract verifier for Kotlin JNI $\leftrightarrow$ POSIX C exports.
 * **`wc-scaffold`**: Component generator for Jetpack Compose UI and StateFlow repositories.
 * **`wc-analyze`**: AST cyclomatic complexity, LOC, and function metrics profiler.
+* **`wc-electron-runner`**: Headless Electron security auditor, IPC bridge validator & plugin simulator.
 
 ### ⚙️ Category 04: System, Diagnostics & Build (`categories/04_system_runtime/`)
 * **`wc-build-doctor`**: Android Gradle configuration auditor and 16KB page alignment verifier.
@@ -81,6 +85,10 @@ AI-Agents-Workspace-Tools-Library/
 * **`wc-agent-memory`**: Persistent SQLite storage for architectural rules and directory snapshots.
 * **`wc-task-exec`**: Autonomous multi-phase task pipeline runner with receipt generation.
 * **`wc-tool-registry`**: Interactive master tool catalog supporting keyword and JSON queries.
+* **`wc-cloud-backup`**: Autonomous incremental snapshot creator, SHA-256 integrity ledger & cloud backup manager.
+* **`wc-elf-align`**: Android 15/16 (API 36) 16KB page-alignment ELF binary analyzer & segment validator.
+* **`wc-adb-bridge`**: Termux wireless ADB connection manager, device discovery & screencap capture tool.
+* **`wc-kernel-builder`**: Android GKI Linux Kernel compilation manager, defconfig auditor & AnyKernel3 packager.
 
 ---
 
@@ -92,7 +100,7 @@ python3 -m unittest tests/test_all.py
 ```
 **Result**:
 ```
-Ran 33 tests in 4.85s
+Ran 41 tests in 5.14s
 OK
 ```
 

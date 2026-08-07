@@ -1,0 +1,56 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import json
+import argparse
+from pathlib import Path
+
+# Add project root to sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from lib.skill_pack import SkillPacker
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Automated SKILL.md linter, YAML frontmatter validator and skill package bundler."
+    )
+    subparsers = parser.add_subparsers(dest="command")
+
+    # lint
+    p_lint = subparsers.add_parser("lint", help="Lint a single SKILL.md or directory of skills")
+    p_lint.add_argument("target", type=Path, help="Path to SKILL.md or skills directory")
+
+    # pack
+    p_pack = subparsers.add_parser("pack", help="Pack a skill folder into a verified .skill bundle")
+    p_pack.add_argument("skill_dir", type=Path, help="Path to skill directory containing SKILL.md")
+    p_pack.add_argument("-o", "--output", type=Path, default=None, help="Output .skill bundle file path")
+
+    # unpack
+    p_unpack = subparsers.add_parser("unpack", help="Unpack and verify a .skill package")
+    p_unpack.add_argument("bundle", type=Path, help="Path to .skill bundle")
+    p_unpack.add_argument("-d", "--dest", type=Path, required=True, help="Destination directory to extract into")
+
+    args = parser.parse_args()
+
+    if args.command == "lint":
+        target = args.target
+        if target.is_file():
+            res = SkillPacker.lint_skill(target)
+        else:
+            res = SkillPacker.validate_directory(target)
+        print(json.dumps(res, indent=2))
+        sys.exit(0 if res.get("valid", True) else 1)
+
+    elif args.command == "pack":
+        res = SkillPacker.pack_skill(args.skill_dir, args.output)
+        print(json.dumps(res, indent=2))
+        sys.exit(0 if res.get("status") == "SUCCESS" else 1)
+
+    elif args.command == "unpack":
+        res = SkillPacker.unpack_skill(args.bundle, args.dest)
+        print(json.dumps(res, indent=2))
+        sys.exit(0 if res.get("status") == "SUCCESS" else 1)
+
+    else:
+        parser.print_help()
+
+if __name__ == "__main__":
+    main()

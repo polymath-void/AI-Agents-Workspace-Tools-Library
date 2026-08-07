@@ -9,31 +9,33 @@ from lib.json import (
     JSONSuite, PromptJSONProcessor, JSONFormatter,
     JSONSchemaGenerator, JSONFlattener, NDJSONSuite,
     JSONCSVBridge, JSONStatsInspector, JSONFilterEngine,
-    JSONSanitizer
+    JSONSanitizer, AGYSessionInspector
 )
 from lib.py import (
     ComplexityAnalyzer, analyze_workspace, workspace_summary,
     batch_code_replace, inject_import,
     scaffold_compose_component, scaffold_repository,
     get_system_telemetry, get_installed_toolchains,
-    parse_stacktrace
+    parse_stacktrace, ElectronStudioRunner
 )
 from lib.workflow import (
     TaskDAG, AgentMesh, AgentChannel, run_agent_loop,
     probe_agent_environment, AgentMemoryStore,
     compress_log_trace, pack_agent_context,
     auto_heal_error, ensure_path_configured, ResourceLock,
-    WorkflowContextManager, SwarmDispatcher
+    WorkflowContextManager, SwarmDispatcher, SkillPacker, HermesAdapter
 )
 from lib.system import (
     scan_directory, sanitize_workspace, fast_search,
     inspect_dependencies, get_git_status, sync_branches,
     validate_jni_contracts, pack_piuu_bundle, verify_piuu_bundle,
     run_benchmark, execute_autonomous_task, ObjectComparator,
-    WorkspaceMonitor, diagnose_android_build
+    WorkspaceMonitor, diagnose_android_build, CloudBackupEngine,
+    ELFAlignAnalyzer, ADBBridge, KernelBuilder
 )
 from lib.registry import get_registry_catalog
 from wie.storage.memory import WIEMemory
+
 
 class TestWorkspaceTools(unittest.TestCase):
     def setUp(self):
@@ -341,5 +343,144 @@ class TestWorkspaceTools(unittest.TestCase):
         recent = memory.get_recent_events(limit=5)
         self.assertGreaterEqual(len(recent), 1)
 
+    def test_cloud_backup_engine(self):
+        db_file = self.sandbox / "backup_test.sqlite"
+        engine = CloudBackupEngine(db_path=db_file)
+        res = engine.create_backup(target=str(self.sandbox), dest_dir=self.sandbox / "out_backups", force=True)
+        self.assertEqual(res.get("status"), "SUCCESS")
+        self.assertIn("archive", res)
+        self.assertTrue(Path(res["archive"]).exists())
+        backups = engine.list_backups()
+        self.assertGreaterEqual(len(backups), 1)
+
+    def test_skill_packer(self):
+        skill_dir = self.sandbox / "sample_skill"
+        skill_dir.mkdir(parents=True, exist_ok=True)
+        skill_file = skill_dir / "SKILL.md"
+        skill_file.write_text(
+            "---\nname: test-skill\ndescription: Test skill for validating skill packer toolchain.\n---\n\n# Test Skill\n## Required Tools\n- `wc-json-query`\n"
+        )
+        lint = SkillPacker.lint_skill(skill_file)
+        self.assertTrue(lint["valid"])
+        self.assertEqual(lint["skill_name"], "test-skill")
+
+        pack_res = SkillPacker.pack_skill(skill_dir, self.sandbox / "test-skill.skill")
+        self.assertEqual(pack_res.get("status"), "SUCCESS")
+        self.assertTrue(Path(pack_res["bundle"]).exists())
+
+        unpack_dir = self.sandbox / "unpacked_skill"
+        unpack_res = SkillPacker.unpack_skill(Path(pack_res["bundle"]), unpack_dir)
+        self.assertEqual(unpack_res.get("status"), "SUCCESS")
+        self.assertTrue((unpack_dir / "SKILL.md").exists())
+
+    def test_elf_align_analyzer(self):
+        # Generate dummy 64-bit ELF binary with 16KB alignment
+        elf_file = self.sandbox / "libdummy.so"
+        # ELF header (64 bytes)
+        # EI_MAG (4), EI_CLASS (2=64bit), EI_DATA (1=LE), EI_VERSION (1), EI_OSABI (0), EI_ABIVERSION (0), EI_PAD (7)
+        ident = b"\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        # e_type(2), e_machine(183=AArch64), e_version(4), e_entry(8), e_phoff(8=64), e_shoff(8=0), e_flags(4), e_ehsize(2=64), e_phentsize(2=56), e_phnum(2=1), e_shentsize(2=0), e_shnum(2=0), e_shstrndx(2=0)
+        import struct
+        hdr = ident + struct.pack("<HHIQQQIHHHHHH", 3, 183, 1, 0x1000, 64, 0, 0, 64, 56, 1, 0, 0, 0)
+        # Program header (56 bytes): p_type(1=PT_LOAD), p_flags(5), p_offset(0), p_vaddr(0), p_paddr(0), p_filesz(100), p_memsz(100), p_align(16384=0x4000)
+        phdr = struct.pack("<IIQQQQQQ", 1, 5, 0, 0, 0, 100, 100, 16384)
+        elf_file.write_bytes(hdr + phdr + (b"\x00" * 100))
+
+        res = ELFAlignAnalyzer.inspect_binary(elf_file)
+        self.assertEqual(res.get("status"), "SUCCESS")
+        self.assertTrue(res.get("is_16kb_aligned"))
+        self.assertEqual(res.get("architecture"), "AArch64 (arm64-v8a)")
+
+    def test_adb_bridge(self):
+        adb_bin = ADBBridge.get_adb_binary()
+        self.assertTrue(bool(adb_bin))
+        dev_res = ADBBridge.list_devices()
+        self.assertIn("devices", dev_res)
+
+    def test_kernel_builder(self):
+        env_res = KernelBuilder.check_environment()
+        self.assertIn("toolchain_audit", env_res)
+        
+        # Test defconfig audit
+        cfg_file = self.sandbox / "dummy_defconfig"
+        cfg_file.write_text("CONFIG_ARM64=y\nCONFIG_KPROBES=y\nCONFIG_MODULES=y\n")
+        audit_res = KernelBuilder.audit_defconfig(cfg_file)
+        self.assertEqual(audit_res.get("status"), "SUCCESS")
+        self.assertGreaterEqual(audit_res.get("total_options"), 3)
+
+        # Test dummy kernel Image verification
+        img_file = self.sandbox / "Image"
+        # 64-byte header: offset 56 must be ARM64_IMAGE_MAGIC (0x644d5241)
+        import struct
+        img_data = bytearray(128)
+        struct.pack_into("<I", img_data, 56, 0x644d5241)
+        img_file.write_bytes(img_data)
+
+        verify_res = KernelBuilder.verify_kernel_image(img_file)
+        self.assertEqual(verify_res.get("status"), "SUCCESS")
+        self.assertTrue(verify_res.get("is_valid_arm64"))
+
+    def test_hermes_adapter(self):
+        agy_steps = [
+            {"step_index": 0, "type": "USER_INPUT", "content": "Hello agent"},
+            {"step_index": 1, "type": "PLANNER_RESPONSE", "content": "I am working", "tool_calls": [{"name": "wc-scan", "args": {"directory": "."}}]}
+        ]
+        hermes_sess = HermesAdapter.agy_to_hermes(agy_steps)
+        self.assertEqual(hermes_sess.get("protocol"), "hermes-agent-v1")
+        self.assertEqual(hermes_sess.get("message_count"), 2)
+        self.assertEqual(hermes_sess.get("tool_call_count"), 1)
+
+        back_to_agy = HermesAdapter.hermes_to_agy(hermes_sess)
+        self.assertEqual(len(back_to_agy), 2)
+        self.assertEqual(back_to_agy[0]["type"], "USER_INPUT")
+
+    def test_electron_runner(self):
+        main_js = self.sandbox / "main.js"
+        main_js.write_text("""
+const { app, BrowserWindow, ipcMain } = require('electron');
+const win = new BrowserWindow({
+    webPreferences: {
+        nodeIntegration: false,
+        contextIsolation: true
+    }
+});
+ipcMain.handle('get-system-info', async () => ({ os: 'linux' }));
+""")
+        preload_js = self.sandbox / "preload.js"
+        preload_js.write_text("""
+const { contextBridge, ipcRenderer } = require('electron');
+contextBridge.exposeInMainWorld('electronAPI', {
+    getInfo: () => ipcRenderer.invoke('get-system-info')
+});
+""")
+        sec_res = ElectronStudioRunner.audit_security(main_js)
+        self.assertEqual(sec_res.get("status"), "PASS")
+        self.assertTrue(sec_res.get("node_integration_disabled"))
+
+        ipc_res = ElectronStudioRunner.audit_ipc_channels(main_js, preload_js)
+        self.assertEqual(ipc_res.get("status"), "SUCCESS")
+        self.assertTrue(ipc_res.get("contract_matched"))
+
+    def test_agy_session_inspector(self):
+        log_file = self.sandbox / "transcript.jsonl"
+        lines = [
+            json.dumps({"step_index": 0, "type": "USER_INPUT", "content": "test prompt"}),
+            json.dumps({"step_index": 1, "type": "PLANNER_RESPONSE", "content": "working", "tool_calls": [{"name": "wc-search", "args": {}}]}),
+            json.dumps({"step_index": 2, "type": "PLANNER_RESPONSE", "content": "spawning", "tool_calls": [{"name": "invoke_subagent", "args": {"Subagents": [{"TypeName": "research", "Role": "Researcher"}]}}]})
+        ]
+        log_file.write_text("\n".join(lines))
+
+        stats = AGYSessionInspector.analyze_session(log_file)
+        self.assertEqual(stats.get("status"), "SUCCESS")
+        self.assertEqual(stats.get("total_steps"), 3)
+        self.assertEqual(stats.get("total_tool_calls"), 2)
+        self.assertEqual(len(stats.get("subagents_spawned")), 1)
+
+        out_md = self.sandbox / "timeline.md"
+        tl_res = AGYSessionInspector.export_markdown_timeline(log_file, out_md)
+        self.assertEqual(tl_res.get("status"), "SUCCESS")
+        self.assertTrue(out_md.exists())
+
 if __name__ == '__main__':
     unittest.main()
+

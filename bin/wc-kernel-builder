@@ -1,0 +1,61 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import json
+import argparse
+from pathlib import Path
+
+# Add project root to sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from lib.kernel_builder import KernelBuilder
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Android GKI Linux Kernel compilation manager, defconfig auditor & AnyKernel3 packager."
+    )
+    subparsers = parser.add_subparsers(dest="command")
+
+    # check-env
+    subparsers.add_parser("check-env", help="Audit host build environment and compiler toolchains")
+
+    # audit-config
+    p_cfg = subparsers.add_parser("audit-config", help="Audit defconfig for GKI requirements")
+    p_cfg.add_argument("config", type=Path, help="Path to defconfig or .config")
+
+    # verify-image
+    p_img = subparsers.add_parser("verify-image", help="Verify ARM64 kernel Image magic and size")
+    p_img.add_argument("image", type=Path, help="Path to compiled Image or Image.lz4")
+
+    # anykernel
+    p_ak = subparsers.add_parser("anykernel-pack", help="Package kernel Image into flashable AnyKernel3 zip")
+    p_ak.add_argument("image", type=Path, help="Path to kernel Image")
+    p_ak.add_argument("-o", "--output", type=Path, default=Path("AnyKernel3-Custom.zip"), help="Output zip filename")
+    p_ak.add_argument("-d", "--device", default="Android Device", help="Device name for recovery banner")
+
+    args = parser.parse_args()
+
+    if args.command == "check-env" or args.command is None:
+        res = KernelBuilder.check_environment()
+        print(json.dumps(res, indent=2))
+        sys.exit(0)
+
+
+    elif args.command == "audit-config":
+        res = KernelBuilder.audit_defconfig(args.config)
+        print(json.dumps(res, indent=2))
+        sys.exit(0 if res.get("status") == "SUCCESS" else 1)
+
+    elif args.command == "verify-image":
+        res = KernelBuilder.verify_kernel_image(args.image)
+        print(json.dumps(res, indent=2))
+        sys.exit(0 if res.get("is_valid_arm64", True) else 1)
+
+    elif args.command == "anykernel-pack":
+        res = KernelBuilder.pack_anykernel3(args.image, args.output, args.device)
+        print(json.dumps(res, indent=2))
+        sys.exit(0 if res.get("status") == "SUCCESS" else 1)
+
+    else:
+        parser.print_help()
+
+if __name__ == "__main__":
+    main()

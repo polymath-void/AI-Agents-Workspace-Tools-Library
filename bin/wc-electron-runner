@@ -1,0 +1,51 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import json
+import argparse
+from pathlib import Path
+
+# Add project root to sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from lib.electron_runner import ElectronStudioRunner
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Headless Electron IPC bridge mock validator and extension studio bundle simulator."
+    )
+    subparsers = parser.add_subparsers(dest="command")
+
+    # audit-security
+    p_sec = subparsers.add_parser("audit-security", help="Audit Electron main process BrowserWindow security flags")
+    p_sec.add_argument("main_js", type=Path, help="Path to main.js")
+
+    # audit-ipc
+    p_ipc = subparsers.add_parser("audit-ipc", help="Cross-reference main IPC handlers against preload invocations")
+    p_ipc.add_argument("main_js", type=Path, help="Path to main.js")
+    p_ipc.add_argument("-p", "--preload", type=Path, default=None, help="Path to preload.js")
+
+    # simulate-bundle
+    p_sim = subparsers.add_parser("simulate-bundle", help="Simulate importing and validating .piuu extension bundle")
+    p_sim.add_argument("bundle", type=Path, help="Path to .piuu bundle archive")
+
+    args = parser.parse_args()
+
+    if args.command == "audit-security":
+        res = ElectronStudioRunner.audit_security(args.main_js)
+        print(json.dumps(res, indent=2))
+        sys.exit(0 if res.get("status") == "PASS" else 1)
+
+    elif args.command == "audit-ipc":
+        res = ElectronStudioRunner.audit_ipc_channels(args.main_js, args.preload)
+        print(json.dumps(res, indent=2))
+        sys.exit(0 if res.get("contract_matched", True) else 1)
+
+    elif args.command == "simulate-bundle":
+        res = ElectronStudioRunner.simulate_bundle_import(args.bundle)
+        print(json.dumps(res, indent=2))
+        sys.exit(0 if res.get("is_valid_piuu", True) else 1)
+
+    else:
+        parser.print_help()
+
+if __name__ == "__main__":
+    main()

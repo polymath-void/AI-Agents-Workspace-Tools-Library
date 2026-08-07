@@ -1,0 +1,46 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import json
+import argparse
+from pathlib import Path
+
+# Add project root to sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from lib.agy_session import AGYSessionInspector
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Antigravity AGY session transcript analyzer, token density counter and tool call profiler."
+    )
+    subparsers = parser.add_subparsers(dest="command")
+
+    # stats
+    p_stats = subparsers.add_parser("stats", help="Analyze session transcript statistics and tool calls")
+    p_stats.add_argument("transcript", type=Path, help="Path to transcript.jsonl")
+
+    # timeline
+    p_time = subparsers.add_parser("timeline", help="Export readable Markdown session timeline")
+    p_time.add_argument("transcript", type=Path, help="Path to transcript.jsonl")
+    p_time.add_argument("-o", "--output", type=Path, default=Path("session_timeline.md"), help="Output Markdown file")
+
+    args = parser.parse_args()
+
+    if args.command == "stats" or args.command is None:
+        transcript = getattr(args, "transcript", None)
+        if not transcript:
+            parser.print_help()
+            sys.exit(1)
+        res = AGYSessionInspector.analyze_session(transcript)
+        print(json.dumps(res, indent=2))
+        sys.exit(0 if res.get("status") == "SUCCESS" else 1)
+
+    elif args.command == "timeline":
+        res = AGYSessionInspector.export_markdown_timeline(args.transcript, args.output)
+        print(json.dumps(res, indent=2))
+        sys.exit(0 if res.get("status") == "SUCCESS" else 1)
+
+    else:
+        parser.print_help()
+
+if __name__ == "__main__":
+    main()

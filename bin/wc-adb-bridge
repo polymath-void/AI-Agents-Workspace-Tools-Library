@@ -1,0 +1,67 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import json
+import argparse
+from pathlib import Path
+
+# Add project root to sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from lib.adb_bridge import ADBBridge
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Termux & Linux wireless ADB connection manager, remote shell and screencap tool."
+    )
+    subparsers = parser.add_subparsers(dest="command")
+
+    # devices
+    subparsers.add_parser("devices", help="List connected ADB devices")
+
+    # pair
+    p_pair = subparsers.add_parser("pair", help="Pair with Android Wireless Debugging")
+    p_pair.add_argument("target", help="host:port to pair with")
+    p_pair.add_argument("code", help="6-digit pairing code")
+
+    # connect
+    p_conn = subparsers.add_parser("connect", help="Connect to wireless ADB device")
+    p_conn.add_argument("target", help="host:port to connect")
+
+    # shell
+    p_shell = subparsers.add_parser("shell", help="Run shell command on target device")
+    p_shell.add_argument("cmd", help="Command string to execute")
+    p_shell.add_argument("-s", "--serial", default=None, help="Target device serial")
+
+    # screencap
+    p_cap = subparsers.add_parser("screencap", help="Capture screenshot directly from device")
+    p_cap.add_argument("output", type=Path, help="Destination PNG file path")
+    p_cap.add_argument("-s", "--serial", default=None, help="Target device serial")
+
+    # telemetry
+    p_tele = subparsers.add_parser("telemetry", help="Extract device battery, display and OS properties")
+    p_tele.add_argument("-s", "--serial", default=None, help="Target device serial")
+
+    args = parser.parse_args()
+
+    if args.command == "devices" or args.command is None:
+        res = ADBBridge.list_devices()
+        print(json.dumps(res, indent=2))
+    elif args.command == "pair":
+        res = ADBBridge.pair_wireless(args.target, args.code)
+        print(json.dumps(res, indent=2))
+    elif args.command == "connect":
+        res = ADBBridge.connect_wireless(args.target)
+        print(json.dumps(res, indent=2))
+    elif args.command == "shell":
+        res = ADBBridge.run_shell(args.cmd, args.serial)
+        print(json.dumps(res, indent=2))
+    elif args.command == "screencap":
+        res = ADBBridge.capture_screenshot(args.output, args.serial)
+        print(json.dumps(res, indent=2))
+    elif args.command == "telemetry":
+        res = ADBBridge.get_telemetry(args.serial)
+        print(json.dumps(res, indent=2))
+    else:
+        parser.print_help()
+
+if __name__ == "__main__":
+    main()

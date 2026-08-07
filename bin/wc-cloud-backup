@@ -1,0 +1,50 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import json
+import argparse
+from pathlib import Path
+
+# Add project root to sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from lib.cloud_backup import CloudBackupEngine
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Autonomous zero-overhead incremental cloud backup and disaster recovery sync manager."
+    )
+    subparsers = parser.add_subparsers(dest="command")
+
+    # backup
+    p_backup = subparsers.add_parser("backup", help="Create incremental compressed backup snapshot")
+    p_backup.add_argument("-t", "--target", default="agy", choices=["agy", "gemini", "termux", "all"], help="Backup target domain")
+    p_backup.add_argument("-d", "--dest", type=Path, default=None, help="Destination staging directory")
+    p_backup.add_argument("--dry-run", action="store_true", help="Perform scanning without archive compression")
+    p_backup.add_argument("-f", "--force", action="store_true", help="Force archive recreation")
+
+    # list
+    subparsers.add_parser("list", help="List recorded backup snapshots in ledger")
+
+    # status
+    subparsers.add_parser("status", help="Display backup database status and recent runs")
+
+    args = parser.parse_args()
+    engine = CloudBackupEngine()
+
+    if args.command == "backup" or args.command is None:
+        target = getattr(args, "target", "agy")
+        dest = getattr(args, "dest", None)
+        dry = getattr(args, "dry_run", False)
+        force = getattr(args, "force", False)
+        res = engine.create_backup(target=target, dest_dir=dest, dry_run=dry, force=force)
+        print(json.dumps(res, indent=2))
+    elif args.command == "list":
+        res = engine.list_backups()
+        print(json.dumps(res, indent=2))
+    elif args.command == "status":
+        res = engine.status()
+        print(json.dumps(res, indent=2))
+    else:
+        parser.print_help()
+
+if __name__ == "__main__":
+    main()

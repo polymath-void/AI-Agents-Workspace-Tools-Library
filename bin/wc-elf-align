@@ -1,0 +1,45 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import json
+import argparse
+from pathlib import Path
+
+# Add project root to sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from lib.elf_align import ELFAlignAnalyzer
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Android 15 & 16 (API 36) 16KB memory page-alignment ELF binary analyzer & validator."
+    )
+    subparsers = parser.add_subparsers(dest="command")
+
+    # inspect
+    p_insp = subparsers.add_parser("inspect", help="Inspect ELF binary segment page alignments")
+    p_insp.add_argument("target", type=Path, help="Path to ELF binary or directory containing .so files")
+
+    # flags
+    subparsers.add_parser("flags", help="Display recommended CMake/NDK 16KB linker flags")
+
+    args = parser.parse_args()
+
+    if args.command == "inspect" or args.command is None:
+        target = getattr(args, "target", None)
+        if not target:
+            target = Path(".")
+        
+        if target.is_file():
+            res = ELFAlignAnalyzer.inspect_binary(target)
+        else:
+            res = ELFAlignAnalyzer.scan_directory(target)
+        print(json.dumps(res, indent=2))
+        sys.exit(0 if res.get("is_16kb_aligned", res.get("all_compliant", True)) else 1)
+
+    elif args.command == "flags":
+        res = ELFAlignAnalyzer.get_linker_flag_recommendation()
+        print(json.dumps(res, indent=2))
+    else:
+        parser.print_help()
+
+if __name__ == "__main__":
+    main()
