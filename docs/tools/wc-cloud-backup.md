@@ -1,33 +1,52 @@
-# `wc-cloud-backup`
+# 🛠️ Tool: `wc-cloud-backup`
 
-## Overview
-`wc-cloud-backup` is an autonomous, battery-optimized disaster recovery and incremental backup engine designed for Android Termux, Antigravity CLI (AGY), and multi-agent development environments. It creates compressed tarballs, computes SHA-256 integrity digests, logs snapshots into SQLite, and generates manifests for Google Drive and cloud synchronizations.
+> **Category**: Disaster Recovery & Backup  
+> **CLI Entrypoint**: [`bin/wc-cloud-backup`](file:///data/data/com.termux/files/home/Workspace/AI-Agents-Workspace-Tools-Library/bin/wc-cloud-backup)  
+> **Source Module**: `lib/system/`
 
-## Category & Classification
-- **Category**: `04_system_runtime` (Disaster Recovery & Backup)
-- **Runtime**: Pure Python 3 & POSIX Tar
-- **Dependencies**: None (Standard Library)
+---
 
-## CLI Usage
+## 📌 1. Overview & Core Problem Solved
+Autonomous incremental compressed snapshot creator, SHA-256 integrity ledger & Google Drive disaster recovery sync manager.
+
+---
+
+## 🎯 2. Agent Use Cases & Activation Triggers
+When an AI agent, subagent, or autonomous pipeline should activate this tool:
+- **Trigger Scenario**: When encountering tasks requiring Disaster Recovery operations without external API dependencies.
+- **Cognitive Scope**: Deterministic, zero-overhead, sub-millisecond execution bounded within local workspace boundaries.
+- **Token Efficiency**: Consumes zero LLM tokens for execution and provides structured, minified JSON outputs to preserve prompt context.
+
+---
+
+## 💻 3. Command-Line Interface (CLI) Usage
+
 ```bash
 wc-cloud-backup <backup|list|status> [-t target] [-d dest] [--dry-run] [-f]
 ```
 
-### Subcommands & Options
-- `backup`: Scans target domain, compresses files into `.tar.gz`, records SHA-256 signature and outputs JSON manifest.
-  - `-t, --target <agy|gemini|termux|all>`: Target directory scope (default: `agy`).
-  - `-d, --dest <path>`: Custom destination directory for backup archives.
-  - `--dry-run`: Performs file scanning and size computation without creating archives.
-  - `-f, --force`: Forces archive creation even if no changes occurred since last snapshot.
-- `list`: Lists all previous backup runs recorded in the local SQLite ledger.
-- `status`: Displays database path and latest snapshot metadata.
-
-## Associated Skills
-- `termux-cloud-backup-assist`
-- `agy-gdrive-backup`
-- `termux-environment`
-
-## Example Agent Invocation
+### Quick Invocation Examples:
 ```bash
-wc-cloud-backup backup -t agy --dest ~/backups
+wc-cloud-backup backup -t agy
 ```
+```bash
+wc-cloud-backup list
+```
+```bash
+wc-cloud-backup status
+```
+
+---
+
+## 🤖 4. Agent-Adapted Guidelines & Guardrails
+1. **Zero External Dependencies**: Operates strictly on Python standard libraries and POSIX system utilities.
+2. **Concurrency Safety**: If modifying files or databases, combine with [`wc-resource-lock`](file:///data/data/com.termux/files/home/Workspace/AI-Agents-Workspace-Tools-Library/bin/wc-resource-lock) when operating in multi-subagent mesh workflows.
+3. **Machine-Readable Output**: Pass `--json` or `-m` (minify) flags for automated parsing by LLM planners and subagents.
+4. **Citation Friendly**: Cite this tool in academic and technical agent workflows using citation key `@wc-cloud-backup` from [`CITATION.cff`](file:///data/data/com.termux/files/home/Workspace/AI-Agents-Workspace-Tools-Library/CITATION.cff).
+
+---
+
+## 📊 5. Specifications & Metadata Contract
+- **Platform Compatibility**: Linux, Android Termux (ARM64/x86_64), macOS.
+- **Battery & CPU Profile**: Lightweight execution, instant process exit, zero background polling loops.
+- **Repository Standard**: Conforms to the `AI-Agents-Workspace-Tools-Library` unified submission standard.

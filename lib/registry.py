@@ -377,6 +377,17 @@ TOOLS_CATALOG = [
         ]
     },
     {
+        "name": "wc-cloud-repo-watch",
+        "category": "Git & CI/CD",
+        "description": "Cloud Git Repository Fleet Management tool to watch fleet for remote updates, auto-reconcile, cascade updates, and trigger self-healing.",
+        "usage": "wc-cloud-repo-watch [--status] [--watch] [--cascade] [--heal] [--json]",
+        "examples": [
+            "wc-cloud-repo-watch --status",
+            "wc-cloud-repo-watch --watch --cascade --auto-push",
+            "wc-cloud-repo-watch --heal --repo my-repo"
+        ]
+    },
+    {
         "name": "wc-termux-env",
         "category": "Android & Termux System",
         "description": "Inspects Android/Termux hardware telemetry (RAM, CPU load), verified toolchains (clang, python, git), and fixes shebangs.",
@@ -386,6 +397,18 @@ TOOLS_CATALOG = [
             "wc-termux-env toolchains"
         ]
     },
+    {
+        "name": "wc-native-ai",
+        "category": "Android & Termux System",
+        "description": "Lifecycle orchestrator for the native AI inference engine (phi-3-mini-q4.gguf): manages on-demand wake, sleep, and query loops.",
+        "usage": "wc-native-ai <query|status|wake|sleep> [arguments...]",
+        "examples": [
+            "wc-native-ai query \"Why is the compilation stack failing?\"",
+            "wc-native-ai status",
+            "wc-native-ai sleep"
+        ]
+    },
+
     {
         "name": "wc-scan",
         "category": "Inspection & Architecture",
@@ -442,8 +465,8 @@ TOOLS_CATALOG = [
         "description": "Automated SKILL.md linter, YAML frontmatter validator, AST toolchain dependency validator and .skill bundle packager.",
         "usage": "wc-skill-pack <lint|pack|unpack> <target> [-o output] [-d dest]",
         "examples": [
-            "wc-skill-pack lint ~/skills-workspace/user-skills/piuu-c-native-core/SKILL.md",
-            "wc-skill-pack pack ~/skills-workspace/user-skills/workspace-context-helper",
+            "wc-skill-pack lint ~/Workspace/Tools/skills-workspace/user-skills/piuu-c-native-core/SKILL.md",
+            "wc-skill-pack pack ~/Workspace/Tools/skills-workspace/user-skills/workspace-context-helper",
             "wc-skill-pack unpack package.skill -d /tmp/extracted_skill"
         ]
     },

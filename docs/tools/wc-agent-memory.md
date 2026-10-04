@@ -1,7 +1,7 @@
 # 🛠️ Tool: `wc-agent-memory`
 
 > **Category**: Agent Memory & State  
-> **CLI Entrypoint**: [`bin/wc-agent-memory`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/bin/wc-agent-memory)  
+> **CLI Entrypoint**: [`bin/wc-agent-memory`](file:///data/data/com.termux/files/home/Workspace/AI-Agents-Workspace-Tools-Library/bin/wc-agent-memory)  
 > **Source Module**: `lib/workflow/`
 
 ---
@@ -37,9 +37,9 @@ wc-agent-memory snapshot ~/repo/Piuu-Unified-Launcher-Android -t 'pre-refactor'
 
 ## 🤖 4. Agent-Adapted Guidelines & Guardrails
 1. **Zero External Dependencies**: Operates strictly on Python standard libraries and POSIX system utilities.
-2. **Concurrency Safety**: If modifying files or databases, combine with [`wc-resource-lock`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/bin/wc-resource-lock) when operating in multi-subagent mesh workflows.
+2. **Concurrency Safety**: If modifying files or databases, combine with [`wc-resource-lock`](file:///data/data/com.termux/files/home/Workspace/AI-Agents-Workspace-Tools-Library/bin/wc-resource-lock) when operating in multi-subagent mesh workflows.
 3. **Machine-Readable Output**: Pass `--json` or `-m` (minify) flags for automated parsing by LLM planners and subagents.
-4. **Citation Friendly**: Cite this tool in academic and technical agent workflows using citation key `@wc-agent-memory` from [`CITATION.cff`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/CITATION.cff).
+4. **Citation Friendly**: Cite this tool in academic and technical agent workflows using citation key `@wc-agent-memory` from [`CITATION.cff`](file:///data/data/com.termux/files/home/Workspace/AI-Agents-Workspace-Tools-Library/CITATION.cff).
 
 ---
 

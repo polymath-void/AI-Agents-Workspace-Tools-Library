@@ -1,7 +1,7 @@
 # 🛠️ Tool: `wc-termux-env`
 
 > **Category**: Android & Termux System  
-> **CLI Entrypoint**: [`bin/wc-termux-env`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/bin/wc-termux-env)  
+> **CLI Entrypoint**: [`bin/wc-termux-env`](file:///data/data/com.termux/files/home/Workspace/AI-Agents-Workspace-Tools-Library/bin/wc-termux-env)  
 > **Source Module**: `lib/system/`
 
 ---
@@ -37,9 +37,9 @@ wc-termux-env toolchains
 
 ## 🤖 4. Agent-Adapted Guidelines & Guardrails
 1. **Zero External Dependencies**: Operates strictly on Python standard libraries and POSIX system utilities.
-2. **Concurrency Safety**: If modifying files or databases, combine with [`wc-resource-lock`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/bin/wc-resource-lock) when operating in multi-subagent mesh workflows.
+2. **Concurrency Safety**: If modifying files or databases, combine with [`wc-resource-lock`](file:///data/data/com.termux/files/home/Workspace/AI-Agents-Workspace-Tools-Library/bin/wc-resource-lock) when operating in multi-subagent mesh workflows.
 3. **Machine-Readable Output**: Pass `--json` or `-m` (minify) flags for automated parsing by LLM planners and subagents.
-4. **Citation Friendly**: Cite this tool in academic and technical agent workflows using citation key `@wc-termux-env` from [`CITATION.cff`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/CITATION.cff).
+4. **Citation Friendly**: Cite this tool in academic and technical agent workflows using citation key `@wc-termux-env` from [`CITATION.cff`](file:///data/data/com.termux/files/home/Workspace/AI-Agents-Workspace-Tools-Library/CITATION.cff).
 
 ---
 

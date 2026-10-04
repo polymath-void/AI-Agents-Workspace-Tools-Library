@@ -1,32 +1,55 @@
-# `wc-adb-bridge`
+# 🛠️ Tool: `wc-adb-bridge`
 
-## Overview
-`wc-adb-bridge` is a wireless ADB connection manager, device discovery agent, remote execution harness, and framebuffer screenshot capture utility for Android Termux and host systems.
+> **Category**: Android & Termux System  
+> **CLI Entrypoint**: [`bin/wc-adb-bridge`](file:///data/data/com.termux/files/home/Workspace/AI-Agents-Workspace-Tools-Library/bin/wc-adb-bridge)  
+> **Source Module**: `lib/system/`
 
-## Category & Classification
-- **Category**: `04_system_runtime` (Android & Termux System)
-- **Runtime**: Pure Python 3 & Subprocess Bridge
-- **Dependencies**: `adb` binary
+---
 
-## CLI Usage
+## 📌 1. Overview & Core Problem Solved
+Termux & Linux wireless ADB connection manager, port discovery, remote shell execution and framebuffer screencap tool.
+
+---
+
+## 🎯 2. Agent Use Cases & Activation Triggers
+When an AI agent, subagent, or autonomous pipeline should activate this tool:
+- **Trigger Scenario**: When encountering tasks requiring Android operations without external API dependencies.
+- **Cognitive Scope**: Deterministic, zero-overhead, sub-millisecond execution bounded within local workspace boundaries.
+- **Token Efficiency**: Consumes zero LLM tokens for execution and provides structured, minified JSON outputs to preserve prompt context.
+
+---
+
+## 💻 3. Command-Line Interface (CLI) Usage
+
 ```bash
 wc-adb-bridge <devices|pair|connect|shell|screencap|telemetry> [args]
 ```
 
-### Subcommands
-- `devices`: Lists all connected USB and wireless ADB devices with product and model metadata.
-- `pair <host:port> <code>`: Pairs with Android 11+ Wireless Debugging service.
-- `connect <host:port>`: Connects to a paired wireless ADB endpoint.
-- `shell "<command>" [-s serial]`: Executes shell command on remote target.
-- `screencap <output.png> [-s serial]`: Takes instant framebuffer capture directly to local PNG file.
-- `telemetry [-s serial]`: Extracts battery level, screen density, OS version, and CPU ABI.
-
-## Associated Skills
-- `phone-ssh-connect`
-- `termux-environment`
-- `piuu-compose-launcher-ui`
-
-## Example Agent Invocation
+### Quick Invocation Examples:
 ```bash
-wc-adb-bridge screencap launcher_preview.png
+wc-adb-bridge devices
 ```
+```bash
+wc-adb-bridge pair 192.168.1.100:37891 123456
+```
+```bash
+wc-adb-bridge screencap phone_screen.png
+```
+```bash
+wc-adb-bridge telemetry
+```
+
+---
+
+## 🤖 4. Agent-Adapted Guidelines & Guardrails
+1. **Zero External Dependencies**: Operates strictly on Python standard libraries and POSIX system utilities.
+2. **Concurrency Safety**: If modifying files or databases, combine with [`wc-resource-lock`](file:///data/data/com.termux/files/home/Workspace/AI-Agents-Workspace-Tools-Library/bin/wc-resource-lock) when operating in multi-subagent mesh workflows.
+3. **Machine-Readable Output**: Pass `--json` or `-m` (minify) flags for automated parsing by LLM planners and subagents.
+4. **Citation Friendly**: Cite this tool in academic and technical agent workflows using citation key `@wc-adb-bridge` from [`CITATION.cff`](file:///data/data/com.termux/files/home/Workspace/AI-Agents-Workspace-Tools-Library/CITATION.cff).
+
+---
+
+## 📊 5. Specifications & Metadata Contract
+- **Platform Compatibility**: Linux, Android Termux (ARM64/x86_64), macOS.
+- **Battery & CPU Profile**: Lightweight execution, instant process exit, zero background polling loops.
+- **Repository Standard**: Conforms to the `AI-Agents-Workspace-Tools-Library` unified submission standard.

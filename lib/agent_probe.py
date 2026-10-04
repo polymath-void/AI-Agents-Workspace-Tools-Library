@@ -16,7 +16,7 @@ def probe_agent_environment():
     }
 
     # 1. Check Tool Library in PATH / Shell Config
-    tools_bin = str(Path(os.path.expanduser("~/AI-Agents-Workspace-Tools-Library/bin")).resolve())
+    tools_bin = str(Path(os.path.expanduser("~/Workspace/Tools/AI-Agents-Workspace-Tools-Library/bin")).resolve())
     current_path = os.environ.get("PATH", "")
     in_live_path = tools_bin in current_path.split(":")
     

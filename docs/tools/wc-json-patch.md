@@ -1,7 +1,7 @@
 # 🛠️ Tool: `wc-json-patch`
 
 > **Category**: JSON & Data Processing  
-> **CLI Entrypoint**: [`bin/wc-json-patch`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/bin/wc-json-patch)  
+> **CLI Entrypoint**: [`bin/wc-json-patch`](file:///data/data/com.termux/files/home/Workspace/AI-Agents-Workspace-Tools-Library/bin/wc-json-patch)  
 > **Source Module**: `lib/json/`
 
 ---
@@ -37,9 +37,9 @@ wc-json-patch merge manifest.json '{"version": "1.1.0"}' -i
 
 ## 🤖 4. Agent-Adapted Guidelines & Guardrails
 1. **Zero External Dependencies**: Operates strictly on Python standard libraries and POSIX system utilities.
-2. **Concurrency Safety**: If modifying files or databases, combine with [`wc-resource-lock`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/bin/wc-resource-lock) when operating in multi-subagent mesh workflows.
+2. **Concurrency Safety**: If modifying files or databases, combine with [`wc-resource-lock`](file:///data/data/com.termux/files/home/Workspace/AI-Agents-Workspace-Tools-Library/bin/wc-resource-lock) when operating in multi-subagent mesh workflows.
 3. **Machine-Readable Output**: Pass `--json` or `-m` (minify) flags for automated parsing by LLM planners and subagents.
-4. **Citation Friendly**: Cite this tool in academic and technical agent workflows using citation key `@wc-json-patch` from [`CITATION.cff`](file:///data/data/com.termux/files/home/AI-Agents-Workspace-Tools-Library/CITATION.cff).
+4. **Citation Friendly**: Cite this tool in academic and technical agent workflows using citation key `@wc-json-patch` from [`CITATION.cff`](file:///data/data/com.termux/files/home/Workspace/AI-Agents-Workspace-Tools-Library/CITATION.cff).
 
 ---
 

@@ -24,7 +24,7 @@ def auto_heal_error(error_message):
     # 2. Detect Shebang missing in Termux (/usr/bin/env: No such file)
     if "No such file or directory" in error_message and ("env" in error_message or "python" in error_message):
         from env_checker import batch_fix_shebangs
-        fixed = batch_fix_shebangs(os.path.expanduser("~/AI-Agents-Workspace-Tools-Library/bin"))
+        fixed = batch_fix_shebangs(os.path.expanduser("~/Workspace/Tools/AI-Agents-Workspace-Tools-Library/bin"))
         if fixed:
             fixes_applied.append(f"Repaired Termux shebangs on {len(fixed)} binary files")
 
@@ -42,9 +42,9 @@ def auto_heal_error(error_message):
 
 def ensure_path_configured():
     """
-    Ensures ~/AI-Agents-Workspace-Tools-Library/bin is added to ~/.bashrc and ~/.zshrc.
+    Ensures ~/Workspace/Tools/AI-Agents-Workspace-Tools-Library/bin is added to ~/.bashrc and ~/.zshrc.
     """
-    tools_bin = os.path.expanduser("~/AI-Agents-Workspace-Tools-Library/bin")
+    tools_bin = os.path.expanduser("~/Workspace/Tools/AI-Agents-Workspace-Tools-Library/bin")
     export_line = f'export PATH="{tools_bin}:$PATH"'
     modified_rcs = []
 

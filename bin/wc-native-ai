@@ -1,0 +1,56 @@
+#!/data/data/com.termux/files/usr/bin/env python3
+import sys
+import os
+
+# Add the lib directory to sys.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '../lib'))
+from system.native_ai import NativeAIEngine
+
+def main():
+    if len(sys.argv) < 2 or sys.argv[1] in ("-h", "--help"):
+        print("Usage: wc-native-ai <command> [arguments...]")
+        print("  Commands:")
+        print("    query \"<prompt>\" : Wakes the engine, runs prompt, and puts it back to sleep")
+        print("    status           : Checks if the native engine is currently running")
+        print("    wake             : Wakes up the engine daemon manually")
+        print("    sleep            : Gracefully shuts down and stops the engine daemon")
+        print("  Examples:")
+        print("    wc-native-ai query \"Analyze my recent git commits\"")
+        print("    wc-native-ai status")
+        sys.exit(0)
+
+    cmd = sys.argv[1]
+    engine = NativeAIEngine()
+
+    if cmd == "query":
+        if len(sys.argv) < 3:
+            print("Error: Missing prompt text. Usage: wc-native-ai query \"<prompt>\"", file=sys.stderr)
+            sys.exit(1)
+        prompt = sys.argv[2]
+        print(engine.query(prompt))
+
+    elif cmd == "status":
+        running = engine.is_running()
+        print(f"Native AI Engine running: {'✅ Yes' if running else '💤 No (Sleeping)'}")
+
+    elif cmd == "wake":
+        print("Waking up Native AI Engine...")
+        if engine.wake():
+            print("✅ Engine is awake and listening on port 57160.")
+        else:
+            print("❌ Failed to wake up engine.")
+            sys.exit(1)
+
+    elif cmd == "sleep":
+        print("Stopping Native AI Engine...")
+        if engine.sleep():
+            print("✅ Engine successfully stopped (0% CPU).")
+        else:
+            print("❌ Failed to stop engine.")
+            sys.exit(1)
+    else:
+        print(f"Unknown command: '{cmd}'. Use 'query', 'status', 'wake', or 'sleep'.", file=sys.stderr)
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
